@@ -1,15 +1,15 @@
 <!-- src/components/ui/PostDetailSkeleton.vue -->
 <template>
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 animate-pulse">
-    <!-- Изображение -->
+    <!-- Image -->
     <div class="h-64 md:h-80 bg-gray-300 rounded-t-xl"></div>
-    
+
     <div class="p-6 md:p-8">
-      <!-- Заголовок -->
+      <!-- Title -->
       <div class="h-8 bg-gray-300 rounded mb-4"></div>
       <div class="h-8 bg-gray-300 rounded w-3/4 mb-6"></div>
-      
-      <!-- Метаданные -->
+
+      <!-- Metadata -->
       <div class="flex items-center space-x-4 mb-8">
         <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
         <div class="space-y-2">
@@ -17,8 +17,8 @@
           <div class="h-3 bg-gray-200 rounded w-16"></div>
         </div>
       </div>
-      
-      <!-- Содержимое -->
+
+      <!-- Content -->
       <div class="space-y-3 mb-8">
         <div class="h-4 bg-gray-200 rounded"></div>
         <div class="h-4 bg-gray-200 rounded"></div>

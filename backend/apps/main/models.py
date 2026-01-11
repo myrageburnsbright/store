@@ -51,7 +51,6 @@ class Category(models.Model):
     def products_count(self):
         """Get total products in this category and subcategories"""
         count = self.products.filter(is_active=True).count()
-        print(count)
         for child in self.children.all():
             count += child.products_count
         return count

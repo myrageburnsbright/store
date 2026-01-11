@@ -1,32 +1,32 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
-      <!-- Заголовок -->
+      <!-- Header -->
       <div class="text-center">
         <div class="mx-auto h-10 w-10 bg-blue-50 rounded-md flex items-center justify-center">
           <UserPlusIcon class="h-5 w-5 text-blue-600" />
         </div>
         <h2 class="mt-6 text-2xl font-semibold text-gray-900">
-          Создать аккаунт
+          Create Account
         </h2>
         <p class="mt-2 text-sm text-gray-600">
-          Или
+          Or
           <router-link
             to="/login"
             class="font-medium text-blue-600 hover:text-blue-700"
           >
-            войдите в существующий аккаунт
+            sign in to existing account
           </router-link>
         </p>
       </div>
 
-      <!-- Форма регистрации -->
+      <!-- Registration Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="space-y-4">
-          <!-- Имя пользователя -->
+          <!-- Username -->
           <div>
             <label for="username" class="block text-sm font-medium text-gray-700">
-              Имя пользователя <span class="text-red-500">*</span>
+              Username <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -48,14 +48,14 @@
               {{ errors.username }}
             </div>
             <p class="mt-1 text-xs text-gray-500">
-              Только буквы, цифры и символы @/./+/-/_
+              Only letters, numbers and symbols @/./+/-/_
             </p>
           </div>
 
           <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700">
-              Email адрес <span class="text-red-500">*</span>
+              Email Address <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -78,11 +78,11 @@
             </div>
           </div>
 
-          <!-- Имя и Фамилия -->
+          <!-- First and Last Name -->
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label for="first_name" class="block text-sm font-medium text-gray-700">
-                Имя
+                First Name
               </label>
               <input
                 id="first_name"
@@ -92,16 +92,16 @@
                 autocomplete="given-name"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
                 :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors.first_name }"
-                placeholder="Имя"
+                placeholder="First Name"
               />
               <div v-if="errors.first_name" class="mt-1 text-xs text-red-600">
                 {{ errors.first_name }}
               </div>
             </div>
-            
+
             <div>
               <label for="last_name" class="block text-sm font-medium text-gray-700">
-                Фамилия
+                Last Name
               </label>
               <input
                 id="last_name"
@@ -111,7 +111,7 @@
                 autocomplete="family-name"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
                 :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors.last_name }"
-                placeholder="Фамилия"
+                placeholder="Last Name"
               />
               <div v-if="errors.last_name" class="mt-1 text-xs text-red-600">
                 {{ errors.last_name }}
@@ -119,10 +119,10 @@
             </div>
           </div>
 
-          <!-- Пароль -->
+          <!-- Password -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
-              Пароль <span class="text-red-500">*</span>
+              Password <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -137,7 +137,7 @@
                 required
                 class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
                 :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors.password }"
-                placeholder="Минимум 8 символов"
+                placeholder="Minimum 8 characters"
               />
               <button
                 type="button"
@@ -151,8 +151,8 @@
             <div v-if="errors.password" class="mt-1 text-xs text-red-600">
               {{ errors.password }}
             </div>
-            
-            <!-- Индикатор силы пароля -->
+
+            <!-- Password strength indicator -->
             <div v-if="form.password" class="mt-2">
               <div class="flex items-center space-x-2">
                 <div class="flex-1 bg-gray-200 rounded-full h-2">
@@ -167,25 +167,25 @@
             </div>
           </div>
 
-          <!-- Подтверждение пароля -->
+          <!-- Confirm Password -->
           <div>
-            <label for="password_confirm" class="block text-sm font-medium text-gray-700">
-              Подтверждение пароля <span class="text-red-500">*</span>
+            <label for="confirmation_password" class="block text-sm font-medium text-gray-700">
+              Confirm Password <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockClosedIcon class="h-5 w-5 text-gray-400" />
               </div>
               <input
-                id="password_confirm"
-                v-model="form.password_confirm"
+                id="confirmation_password"
+                v-model="form.confirmation_password"
                 :type="showPasswordConfirm ? 'text' : 'password'"
-                name="password_confirm"
+                name="confirmation_password"
                 autocomplete="new-password"
                 required
                 class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
-                :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors.password_confirm }"
-                placeholder="Повторите пароль"
+                :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors.confirmation_password }"
+                placeholder="Repeat password"
               />
               <button
                 type="button"
@@ -196,13 +196,13 @@
                 <EyeSlashIcon v-else class="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </button>
             </div>
-            <div v-if="errors.password_confirm" class="mt-1 text-xs text-red-600">
-              {{ errors.password_confirm }}
+            <div v-if="errors.confirmation_password" class="mt-1 text-xs text-red-600">
+              {{ errors.confirmation_password }}
             </div>
           </div>
         </div>
 
-        <!-- Согласие с условиями -->
+        <!-- Terms Agreement -->
         <div class="flex items-start">
           <div class="flex items-center h-5">
             <input
@@ -216,20 +216,20 @@
           </div>
           <div class="ml-3 text-sm">
             <label for="terms" class="text-gray-600">
-              Я согласен с
-              <a href="#" class="text-blue-600 hover:text-blue-700">условиями использования</a>
-              и
-              <a href="#" class="text-blue-600 hover:text-blue-700">политикой конфиденциальности</a>
+              I agree to the
+              <a href="#" class="text-blue-600 hover:text-blue-700">terms of service</a>
+              and
+              <a href="#" class="text-blue-600 hover:text-blue-700">privacy policy</a>
             </label>
           </div>
         </div>
 
-        <!-- Общие ошибки -->
+        <!-- General Errors -->
         <div v-if="errors.general" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
           {{ errors.general }}
         </div>
 
-        <!-- Кнопка регистрации -->
+        <!-- Register Button -->
         <div>
           <button
             type="submit"
@@ -238,21 +238,21 @@
             :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading || !form.agreeToTerms }"
           >
             <div v-if="authStore.isLoading" class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-            {{ authStore.isLoading ? 'Создание аккаунта...' : 'Создать аккаунт' }}
+            {{ authStore.isLoading ? 'Creating Account...' : 'Create Account' }}
           </button>
         </div>
 
-        <!-- Разделитель -->
+        <!-- Divider -->
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300" />
           </div>
           <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-gray-50 text-gray-500">Или зарегистрируйтесь через</span>
+            <span class="px-2 bg-gray-50 text-gray-500">Or sign up with</span>
           </div>
         </div>
 
-        <!-- Социальные кнопки -->
+        <!-- Social Buttons -->
         <div class="grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -322,24 +322,24 @@ export default {
       first_name: '',
       last_name: '',
       password: '',
-      password_confirm: '',
+      confirmation_password: '',
       agreeToTerms: false
     })
     
     const errors = ref({})
     
-    // Оценка силы пароля
+    // Password strength evaluation
     const passwordStrength = computed(() => {
       const password = form.password
       if (!password) return 0
-      
+
       let score = 0
-      
-      // Длина
+
+      // Length
       if (password.length >= 8) score += 1
       if (password.length >= 12) score += 1
-      
-      // Сложность
+
+      // Complexity
       if (/[a-z]/.test(password)) score += 1
       if (/[A-Z]/.test(password)) score += 1
       if (/[0-9]/.test(password)) score += 1
@@ -351,10 +351,10 @@ export default {
     const passwordStrengthText = computed(() => {
       switch (passwordStrength.value) {
         case 0:
-        case 1: return 'Слабый'
-        case 2: return 'Средний'
-        case 3: return 'Хороший'
-        case 4: return 'Отличный'
+        case 1: return 'Weak'
+        case 2: return 'Medium'
+        case 3: return 'Good'
+        case 4: return 'Excellent'
         default: return ''
       }
     })
@@ -379,37 +379,37 @@ export default {
       
       // Username
       if (!form.username) {
-        newErrors.username = 'Имя пользователя обязательно'
+        newErrors.username = 'Username is required'
       } else if (form.username.length < 3) {
-        newErrors.username = 'Имя пользователя должно содержать минимум 3 символа'
+        newErrors.username = 'Username must be at least 3 characters'
       } else if (!/^[\w.@+-]+$/.test(form.username)) {
-        newErrors.username = 'Недопустимые символы в имени пользователя'
+        newErrors.username = 'Invalid characters in username'
       }
-      
+
       // Email
       if (!form.email) {
-        newErrors.email = 'Email обязателен'
+        newErrors.email = 'Email is required'
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-        newErrors.email = 'Некорректный email адрес'
+        newErrors.email = 'Invalid email address'
       }
-      
+
       // Password
       if (!form.password) {
-        newErrors.password = 'Пароль обязателен'
+        newErrors.password = 'Password is required'
       } else if (form.password.length < 8) {
-        newErrors.password = 'Пароль должен содержать минимум 8 символов'
+        newErrors.password = 'Password must be at least 8 characters'
       }
-      
+
       // Password confirmation
-      if (!form.password_confirm) {
-        newErrors.password_confirm = 'Подтверждение пароля обязательно'
-      } else if (form.password !== form.password_confirm) {
-        newErrors.password_confirm = 'Пароли не совпадают'
+      if (!form.confirmation_password) {
+        newErrors.confirmation_password = 'Password confirmation is required'
+      } else if (form.password !== form.confirmation_password) {
+        newErrors.confirmation_password = 'Passwords do not match'
       }
-      
+
       // Terms agreement
       if (!form.agreeToTerms) {
-        newErrors.general = 'Необходимо согласиться с условиями использования'
+        newErrors.general = 'You must agree to the terms of service'
       }
       
       errors.value = newErrors
@@ -430,21 +430,19 @@ export default {
           first_name: form.first_name,
           last_name: form.last_name,
           password: form.password,
-          password_confirm: form.password_confirm
+          confirmation_password: form.confirmation_password
         })
         
-        toast.success('Аккаунт успешно создан! Добро пожаловать!')
-        router.push({ name: 'Home' })
-        
+        toast.success('Account created successfully! Welcome!')
+        router.push({ name: 'home' })
+
       } catch (error) {
-        console.error('Ошибка регистрации:', error)
-        
         if (error.response?.status === 400) {
           const data = error.response.data
           if (data.non_field_errors) {
             errors.value.general = data.non_field_errors[0]
           } else {
-            // Обрабатываем ошибки полей
+            // Handle field errors
             Object.keys(data).forEach(key => {
               if (Array.isArray(data[key])) {
                 errors.value[key] = data[key][0]
@@ -452,14 +450,14 @@ export default {
             })
           }
         } else {
-          errors.value.general = 'Произошла ошибка при регистрации. Попробуйте позже.'
+          errors.value.general = 'An error occurred during registration. Please try again later.'
         }
       }
     }
-    
+
     const handleSocialRegister = (provider) => {
-      // Заглушка для социальной регистрации
-      toast.info(`Регистрация через ${provider} будет доступна в ближайшее время`)
+      // Placeholder for social registration
+      toast.info(`Registration via ${provider} will be available soon`)
     }
     
     return {

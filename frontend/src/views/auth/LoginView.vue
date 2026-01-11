@@ -1,32 +1,32 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
-      <!-- Заголовок -->
+      <!-- Header -->
       <div class="text-center">
         <div class="mx-auto h-10 w-10 bg-blue-50 rounded-md flex items-center justify-center">
           <LockClosedIcon class="h-5 w-5 text-blue-600" />
         </div>
         <h2 class="mt-6 text-2xl font-semibold text-gray-900">
-          Вход в аккаунт
+          Sign In
         </h2>
         <p class="mt-2 text-sm text-gray-600">
-          Или
+          Or
           <router-link
             to="/register"
             class="font-medium text-blue-600 hover:text-blue-700"
           >
-            создайте новый аккаунт
+            create a new account
           </router-link>
         </p>
       </div>
 
-      <!-- Форма входа -->
+      <!-- Login Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="space-y-4">
           <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700">
-              Email адрес
+              Email Address
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -49,10 +49,10 @@
             </div>
           </div>
 
-          <!-- Пароль -->
+          <!-- Password -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
-              Пароль
+              Password
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -67,7 +67,7 @@
                 required
                 class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
                 :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': errors.password }"
-                placeholder="Введите пароль"
+                placeholder="Enter password"
               />
               <button
                 type="button"
@@ -84,7 +84,7 @@
           </div>
         </div>
 
-        <!-- Дополнительные опции -->
+        <!-- Additional Options -->
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <input
@@ -95,7 +95,7 @@
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label for="remember-me" class="ml-2 block text-sm text-gray-600">
-              Запомнить меня
+              Remember me
             </label>
           </div>
 
@@ -105,17 +105,17 @@
               class="font-medium text-blue-600 hover:text-blue-700"
               @click.prevent="showForgotPassword = true"
             >
-              Забыли пароль?
+              Forgot password?
             </a>
           </div>
         </div>
 
-        <!-- Общие ошибки -->
+        <!-- General Errors -->
         <div v-if="errors.general" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
           {{ errors.general }}
         </div>
 
-        <!-- Кнопка входа -->
+        <!-- Login Button -->
         <div>
           <button
             type="submit"
@@ -124,21 +124,21 @@
             :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }"
           >
             <div v-if="authStore.isLoading" class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-            {{ authStore.isLoading ? 'Вход...' : 'Войти' }}
+            {{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}
           </button>
         </div>
 
-        <!-- Разделитель -->
+        <!-- Divider -->
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300" />
           </div>
           <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-gray-50 text-gray-500">Или войдите через</span>
+            <span class="px-2 bg-gray-50 text-gray-500">Or sign in with</span>
           </div>
         </div>
 
-        <!-- Социальные кнопки -->
+        <!-- Social Buttons -->
         <div class="grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -153,7 +153,7 @@
             </svg>
             Google
           </button>
-          
+
           <button
             type="button"
             class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-700 text-sm font-medium transition-colors"
@@ -167,7 +167,7 @@
         </div>
       </form>
 
-      <!-- Модальное окно восстановления пароля -->
+      <!-- Password Recovery Modal -->
       <teleport to="body">
         <div
           v-if="showForgotPassword"
@@ -176,14 +176,14 @@
         >
           <div class="bg-white rounded-md p-6 w-full max-w-md">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">
-              Восстановление пароля
+              Password Recovery
             </h3>
             <p class="text-gray-600 mb-4 text-sm">
-              Введите ваш email адрес и мы отправим инструкции по восстановлению пароля.
+              Enter your email address and we will send you password reset instructions.
             </p>
             <form @submit.prevent="handleForgotPassword">
               <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Email адрес</label>
+                <label class="block text-sm font-medium text-gray-700">Email Address</label>
                 <input
                   v-model="forgotPasswordEmail"
                   type="email"
@@ -198,13 +198,13 @@
                   @click="showForgotPassword = false"
                   class="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-700 text-sm font-medium transition-colors"
                 >
-                  Отмена
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   class="flex-1 py-2 px-4 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm font-medium transition-colors"
                 >
-                  Отправить
+                  Send
                 </button>
               </div>
             </form>
@@ -240,66 +240,64 @@ export default {
     const route = useRoute()
     const authStore = useAuthStore()
     const toast = useToast()
-    
+
     const showPassword = ref(false)
     const showForgotPassword = ref(false)
     const forgotPasswordEmail = ref('')
-    
+
     const form = reactive({
       email: '',
       password: '',
       rememberMe: false
     })
-    
+
     const errors = ref({})
-    
+
     const validateForm = () => {
       const newErrors = {}
-      
+
       if (!form.email) {
-        newErrors.email = 'Email обязателен'
+        newErrors.email = 'Email is required'
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-        newErrors.email = 'Некорректный email адрес'
+        newErrors.email = 'Invalid email address'
       }
-      
+
       if (!form.password) {
-        newErrors.password = 'Пароль обязателен'
+        newErrors.password = 'Password is required'
       } else if (form.password.length < 6) {
-        newErrors.password = 'Пароль должен содержать минимум 6 символов'
+        newErrors.password = 'Password must be at least 6 characters'
       }
-      
+
       errors.value = newErrors
       return Object.keys(newErrors).length === 0
     }
-    
+
     const handleSubmit = async () => {
       errors.value = {}
-      
+
       if (!validateForm()) {
         return
       }
-      
+
       try {
         await authStore.login({
           email: form.email,
           password: form.password
         })
-        
-        toast.success('Добро пожаловать!')
-        
-        // Перенаправляем на страницу, с которой пришел пользователь, или на главную
+
+        toast.success('Welcome!')
+
+        // Redirect to the page the user came from, or to home
         const redirectPath = route.query.redirect || '/'
         router.push(redirectPath)
-        
+
       } catch (error) {
-        console.error('Ошибка входа:', error)
-        
         if (error.response?.status === 400) {
           const data = error.response.data
           if (data.non_field_errors) {
             errors.value.general = data.non_field_errors[0]
           } else {
-            // Обрабатываем ошибки полей
+            // Handle field errors
             Object.keys(data).forEach(key => {
               if (Array.isArray(data[key])) {
                 errors.value[key] = data[key][0]
@@ -307,28 +305,28 @@ export default {
             })
           }
         } else {
-          errors.value.general = 'Произошла ошибка при входе. Попробуйте позже.'
+          errors.value.general = 'An error occurred during login. Please try again later.'
         }
       }
     }
-    
+
     const handleSocialLogin = (provider) => {
-      // Заглушка для социальной авторизации
-      toast.info(`Авторизация через ${provider} будет доступна в ближайшее время`)
+      // Placeholder for social authentication
+      toast.info(`Authentication via ${provider} will be available soon`)
     }
-    
+
     const handleForgotPassword = () => {
       if (!forgotPasswordEmail.value) {
-        toast.error('Введите email адрес')
+        toast.error('Please enter an email address')
         return
       }
-      
-      // Заглушка для восстановления пароля
-      toast.success('Инструкции по восстановлению пароля отправлены на ваш email')
+
+      // Placeholder for password recovery
+      toast.success('Password recovery instructions have been sent to your email')
       showForgotPassword.value = false
       forgotPasswordEmail.value = ''
     }
-    
+
     return {
       authStore,
       form,

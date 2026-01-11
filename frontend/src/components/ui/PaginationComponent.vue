@@ -3,9 +3,9 @@
   <nav class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6" aria-label="Pagination">
     <div class="hidden sm:block">
       <p class="text-sm text-gray-700">
-        Страница
+        Page
         <span class="font-medium">{{ currentPage }}</span>
-        из
+        of
         <span class="font-medium">{{ totalPages }}</span>
       </p>
     </div>
@@ -16,10 +16,10 @@
         class="btn-outline btn-sm mr-3"
         :class="{ 'opacity-50 cursor-not-allowed': !hasPrevious }"
       >
-        Назад
+        Previous
       </button>
-      
-      <!-- Номера страниц -->
+
+      <!-- Page Numbers -->
       <div class="hidden sm:flex items-center space-x-1">
         <button
           v-for="page in visiblePages"
@@ -35,14 +35,14 @@
           {{ page }}
         </button>
       </div>
-      
+
       <button
         @click="$emit('page-change', currentPage + 1)"
         :disabled="!hasNext"
         class="btn-outline btn-sm ml-3"
         :class="{ 'opacity-50 cursor-not-allowed': !hasNext }"
       >
-        Вперед
+        Next
       </button>
     </div>
   </nav>
@@ -77,14 +77,14 @@ export default {
       const pages = []
       const start = Math.max(1, props.currentPage - 2)
       const end = Math.min(props.totalPages, props.currentPage + 2)
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i)
       }
-      
+
       return pages
     })
-    
+
     return {
       visiblePages
     }

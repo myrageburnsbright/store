@@ -2,15 +2,15 @@
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="container-narrow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="bg-white rounded-md shadow-sm border border-gray-200">
-        <!-- Заголовок -->
+        <!-- Header -->
         <div class="p-6 border-b border-gray-200">
-          <h1 class="text-2xl font-semibold text-gray-900">Мой профиль</h1>
+          <h1 class="text-2xl font-semibold text-gray-900">My Profile</h1>
         </div>
-        
-        <!-- Содержимое -->
+
+        <!-- Content -->
         <div class="p-6">
           <form @submit.prevent="handleSubmit" class="space-y-6">
-            <!-- Аватар -->
+            <!-- Avatar -->
             <div class="flex items-center space-x-6">
               <div class="relative">
                 <div v-if="previewAvatar" class="w-20 h-20 rounded-full overflow-hidden">
@@ -30,51 +30,51 @@
                 </label>
               </div>
               <div>
-                <h3 class="text-lg font-medium text-gray-900">{{ authStore.userFullName || 'Пользователь' }}</h3>
+                <h3 class="text-lg font-medium text-gray-900">{{ authStore.userFullName || 'User' }}</h3>
                 <p class="text-sm text-gray-500">{{ authStore.user?.email }}</p>
               </div>
             </div>
-            
-            <!-- Поля формы -->
+
+            <!-- Form Fields -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-gray-700">Имя</label>
+                <label class="block text-sm font-medium text-gray-700">First Name</label>
                 <input
                   v-model="form.first_name"
                   type="text"
                   class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
-                  placeholder="Ваше имя"
+                  placeholder="Your first name"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700">Фамилия</label>
+                <label class="block text-sm font-medium text-gray-700">Last Name</label>
                 <input
                   v-model="form.last_name"
                   type="text"
                   class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
-                  placeholder="Ваша фамилия"
+                  placeholder="Your last name"
                 />
               </div>
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700">О себе</label>
+              <label class="block text-sm font-medium text-gray-700">About</label>
               <textarea
                 v-model="form.bio"
                 rows="4"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400 text-sm"
-                placeholder="Расскажите о себе..."
+                placeholder="Tell us about yourself..."
               ></textarea>
             </div>
-            
-            <!-- Кнопки -->
+
+            <!-- Buttons -->
             <div class="flex justify-end space-x-3">
               <button
                 type="button"
                 @click="resetForm"
                 class="py-2 px-4 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-700 text-sm font-medium transition-colors"
               >
-                Отмена
+                Cancel
               </button>
               <button
                 type="submit"
@@ -83,7 +83,7 @@
                 :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }"
               >
                 <div v-if="authStore.isLoading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Сохранить
+                Save
               </button>
             </div>
           </form>
@@ -127,11 +127,11 @@ export default {
       const file = event.target.files[0]
       if (file) {
         if (file.size > 10 * 1024 * 1024) {
-          toast.error('Размер файла не должен превышать 10MB')
+          toast.error('File size must not exceed 10MB')
           return
         }
         if (!file.type.startsWith('image/')) {
-          toast.error('Можно загружать только изображения')
+          toast.error('Only images can be uploaded')
           return
         }
         avatarFile.value = file
@@ -142,22 +142,22 @@ export default {
         reader.readAsDataURL(file)
       }
     }
-    
+
     const handleSubmit = async () => {
       try {
         const formData = new FormData()
         formData.append('first_name', form.first_name)
         formData.append('last_name', form.last_name)
         formData.append('bio', form.bio)
-        
+
         if (avatarFile.value) {
           formData.append('avatar', avatarFile.value)
         }
-        
+
         await authStore.updateProfile(formData)
-        toast.success('Профиль успешно обновлен')
+        toast.success('Profile updated successfully')
       } catch (error) {
-        toast.error('Ошибка обновления профиля')
+        toast.error('Error updating profile')
       }
     }
     

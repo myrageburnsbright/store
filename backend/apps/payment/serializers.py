@@ -26,8 +26,31 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class OrderItemProductSerializer(serializers.ModelSerializer):
+    """Minimal product serializer for order items"""
+    images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'images']
+
+    def get_images(self, obj):
+        images = obj.images.all()[:1]  # Only first image for orders
+        return [{'image': img.image.url} for img in images] if images else []
+
+
+class OrderItemVariantSerializer(serializers.ModelSerializer):
+    """Minimal variant serializer for order items"""
+
+    class Meta:
+        model = ProductVariant
+        fields = ['id', 'name', 'sku']
+
+
 class OrderItemSerializer(serializers.ModelSerializer):
     """Serializer for order items"""
+    product = OrderItemProductSerializer(read_only=True)
+    variant = OrderItemVariantSerializer(read_only=True)
 
     class Meta:
         model = OrderItem
@@ -266,6 +289,8 @@ class CouponValidateSerializer(serializers.Serializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     """Serializer for payments"""
+    success_url = serializers.URLField(required=False)
+    cancel_url = serializers.URLField(required=False)
 
     class Meta:
         model = Payment

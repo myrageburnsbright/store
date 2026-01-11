@@ -226,6 +226,9 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_session_id = models.CharField(max_length=255, blank=True, null=True)
+
     class Meta:
         db_table = 'payments'
         verbose_name = 'Payment'
@@ -370,3 +373,57 @@ class OrderStatusHistory(models.Model):
 
     def __str__(self):
         return f"{self.order.order_number} - {self.status}"
+
+class WebhookEvent(models.Model):
+    """События webhook от платежных систем"""
+    PROVIDER_CHOICES = [
+        ('stripe', 'Stripe'),
+        ('paypal', 'PayPal'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processed', 'Processed'),
+        ('failed', 'Failed'),
+        ('ignored', 'Ignored'),
+    ]
+
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES)
+    event_id = models.CharField(max_length=255, unique=True)
+    event_type = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    data = models.JSONField()
+    processed_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'webhook_events'
+        verbose_name = 'Webhook Event'
+        verbose_name_plural = 'Webhook Events'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['provider', 'event_type']),
+            models.Index(fields=['status']),
+        ]
+
+    def __str__(self):
+        return f"{self.provider} - {self.event_type} ({self.status})"
+
+    def mark_as_processed(self):
+        """Помечает событие как обработанное"""
+        from django.utils import timezone
+        self.status = 'processed'
+        self.processed_at = timezone.now()
+        self.save()
+
+    def mark_as_failed(self, error_message):
+        """Помечает событие как неудачно обработанное"""
+        from django.utils import timezone
+        self.status = 'failed'
+        self.error_message = error_message
+        self.processed_at = timezone.now()
+        self.save()
+    

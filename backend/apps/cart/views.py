@@ -32,6 +32,7 @@ class CartView(APIView):
 class CartAddItemView(APIView):
     """
     Add item to cart or update quantity if item already exists.
+    Returns the full cart object with all items.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -71,11 +72,6 @@ class CartAddItemView(APIView):
 
             existing_item.quantity = new_quantity
             existing_item.save()
-
-            return Response({
-                'message': 'Cart item quantity updated',
-                'item': CartItemSerializer(existing_item).data
-            }, status=status.HTTP_200_OK)
         else:
             # Create new cart item
             cart_item = CartItem.objects.create(
@@ -85,15 +81,22 @@ class CartAddItemView(APIView):
                 quantity=quantity
             )
 
-            return Response({
-                'message': 'Item added to cart',
-                'item': CartItemSerializer(cart_item).data
-            }, status=status.HTTP_201_CREATED)
+        # Refresh cart with all related data and return full cart
+        cart = Cart.objects.prefetch_related(
+            'items__product__images',
+            'items__product__category',
+            'items__product__brand',
+            'items__variant'
+        ).get(id=cart.id)
+
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CartUpdateItemView(APIView):
     """
     Update quantity of a specific cart item.
+    Returns the full cart object with all items.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -114,15 +117,22 @@ class CartUpdateItemView(APIView):
         cart_item.quantity = serializer.validated_data['quantity']
         cart_item.save()
 
-        return Response({
-            'message': 'Cart item updated',
-            'item': CartItemSerializer(cart_item).data
-        }, status=status.HTTP_200_OK)
+        # Return full cart object
+        cart = Cart.objects.prefetch_related(
+            'items__product__images',
+            'items__product__category',
+            'items__product__brand',
+            'items__variant'
+        ).get(id=cart_item.cart.id)
+
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CartRemoveItemView(APIView):
     """
     Remove specific item from cart.
+    Returns the full cart object with remaining items.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -134,33 +144,42 @@ class CartRemoveItemView(APIView):
             cart__user=request.user
         )
 
-        product_name = cart_item.product.name
+        cart_id = cart_item.cart.id
         cart_item.delete()
 
-        return Response({
-            'message': f'{product_name} removed from cart'
-        }, status=status.HTTP_200_OK)
+        # Return full cart object
+        cart = Cart.objects.prefetch_related(
+            'items__product__images',
+            'items__product__category',
+            'items__product__brand',
+            'items__variant'
+        ).get(id=cart_id)
+
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CartClearView(APIView):
     """
     Clear all items from cart.
+    Returns the empty cart object.
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request):
-        try:
-            cart = Cart.objects.get(user=request.user)
-            items_count = cart.items.count()
-            cart.items.all().delete()
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart.items.all().delete()
 
-            return Response({
-                'message': f'Cart cleared. {items_count} items removed.'
-            }, status=status.HTTP_200_OK)
-        except Cart.DoesNotExist:
-            return Response({
-                'message': 'Cart is already empty'
-            }, status=status.HTTP_200_OK)
+        # Return empty cart object
+        cart = Cart.objects.prefetch_related(
+            'items__product__images',
+            'items__product__category',
+            'items__product__brand',
+            'items__variant'
+        ).get(id=cart.id)
+
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CartItemDetailView(generics.RetrieveAPIView):

@@ -5,33 +5,33 @@
     class="card hover:shadow-lg transition-all duration-300 group cursor-pointer"
   >
     <div class="card-body text-center py-6">
-      <!-- Иконка категории -->
+      <!-- Category Icon -->
       <div class="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-accent-200 transition-colors">
         <component
           :is="getCategoryIcon(category.name)"
           class="w-6 h-6 text-accent-600"
         />
       </div>
-      
-      <!-- Название категории -->
+
+      <!-- Category Name -->
       <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-accent-600 transition-colors">
         {{ category.name }}
       </h3>
-      
-      <!-- Описание -->
+
+      <!-- Description -->
       <p v-if="category.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
         {{ category.description }}
       </p>
-      
-      <!-- Количество постов -->
+
+      <!-- Post Count -->
       <div class="flex items-center justify-center text-sm text-gray-500">
         <DocumentTextIcon class="w-4 h-4 mr-1" />
-        <span>{{ category.posts_count }} {{ pluralize(category.posts_count, 'пост', 'поста', 'постов') }}</span>
+        <span>{{ category.posts_count }} {{ pluralize(category.posts_count, 'post', 'posts', 'posts') }}</span>
       </div>
     </div>
   </router-link>
-  
-  <!-- Fallback для категорий без slug -->
+
+  <!-- Fallback for categories without slug -->
   <div
     v-else
     class="card cursor-not-allowed opacity-50"
@@ -43,18 +43,18 @@
           class="w-6 h-6 text-gray-400"
         />
       </div>
-      
+
       <h3 class="text-lg font-semibold text-gray-600 mb-2">
         {{ category.name }}
       </h3>
-      
+
       <p v-if="category.description" class="text-gray-500 text-sm mb-3 line-clamp-2">
         {{ category.description }}
       </p>
-      
+
       <div class="flex items-center justify-center text-sm text-gray-400">
         <DocumentTextIcon class="w-4 h-4 mr-1" />
-        <span>{{ category.posts_count }} {{ pluralize(category.posts_count, 'пост', 'поста', 'постов') }}</span>
+        <span>{{ category.posts_count }} {{ pluralize(category.posts_count, 'post', 'posts', 'posts') }}</span>
       </div>
     </div>
   </div>
@@ -113,19 +113,19 @@ export default {
       
       const name = categoryName.toLowerCase()
       
-      if (name.includes('технолог') || name.includes('tech')) return 'ComputerDesktopIcon'
-      if (name.includes('наука') || name.includes('science')) return 'BeakerIcon'
-      if (name.includes('здоровье') || name.includes('health')) return 'HeartIcon'
-      if (name.includes('образование') || name.includes('education')) return 'AcademicCapIcon'
-      if (name.includes('путешеств') || name.includes('travel')) return 'GlobeAltIcon'
-      if (name.includes('фото') || name.includes('photo')) return 'CameraIcon'
-      if (name.includes('музыка') || name.includes('music')) return 'MusicalNoteIcon'
-      if (name.includes('спорт') || name.includes('sport')) return 'TrophyIcon'
-      if (name.includes('бизнес') || name.includes('business')) return 'BriefcaseIcon'
-      if (name.includes('дом') || name.includes('home')) return 'HomeIcon'
-      if (name.includes('покупк') || name.includes('shop')) return 'ShoppingBagIcon'
-      if (name.includes('книг') || name.includes('book')) return 'BookOpenIcon'
-      if (name.includes('фильм') || name.includes('movie') || name.includes('кино')) return 'FilmIcon'
+      if (name.includes('tech') || name.includes('технолог')) return 'ComputerDesktopIcon'
+      if (name.includes('science') || name.includes('наука')) return 'BeakerIcon'
+      if (name.includes('health') || name.includes('здоровье')) return 'HeartIcon'
+      if (name.includes('education') || name.includes('образование')) return 'AcademicCapIcon'
+      if (name.includes('travel') || name.includes('путешеств')) return 'GlobeAltIcon'
+      if (name.includes('photo') || name.includes('фото')) return 'CameraIcon'
+      if (name.includes('music') || name.includes('музыка')) return 'MusicalNoteIcon'
+      if (name.includes('sport') || name.includes('спорт')) return 'TrophyIcon'
+      if (name.includes('business') || name.includes('бизнес')) return 'BriefcaseIcon'
+      if (name.includes('home') || name.includes('дом')) return 'HomeIcon'
+      if (name.includes('shop') || name.includes('покупк')) return 'ShoppingBagIcon'
+      if (name.includes('book') || name.includes('книг')) return 'BookOpenIcon'
+      if (name.includes('movie') || name.includes('film') || name.includes('фильм') || name.includes('кино')) return 'FilmIcon'
       
       return 'TagIcon'
     }

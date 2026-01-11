@@ -5,10 +5,10 @@ import { useToast } from 'vue-toastification'
 
 const toast = useToast()
 
-// Базовая конфигурация API
+// Base API configuration
 const API_BASE_URL = 'http://localhost:8000'
 
-// Создание экземпляра axios
+// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -17,12 +17,17 @@ const api = axios.create({
   }
 })
 
-// Интерцептор запросов - добавляем токен авторизации
+// Request interceptor - add authorization token
 api.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
     if (authStore.token) {
       config.headers.Authorization = `Bearer ${authStore.token}`
+    }
+
+    // If sending FormData, remove Content-Type to let browser set it automatically with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
     }
     return config
   },
@@ -32,7 +37,7 @@ api.interceptors.request.use(
 )
 
 
-// Интерцептор ответов - обработка ошибок и обновление токена
+// Response interceptor - error handling and token refresh
 api.interceptors.response.use(
   (response) => {
     return response
@@ -43,8 +48,8 @@ api.interceptors.response.use(
     
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
-      
-      // Попытка обновить токен
+
+      // Attempt to refresh token
       if (authStore.refreshToken) {
         try {
           await authStore.refreshAccessToken()
@@ -53,26 +58,26 @@ api.interceptors.response.use(
         } catch (refreshError) {
           authStore.logout()
           router.push({ name: 'Login' })
-          toast.error('Сессия истекла. Пожалуйста, войдите снова.')
+          toast.error('Session expired. Please sign in again.')
           return Promise.reject(refreshError)
         }
       } else {
         authStore.logout()
         router.push({ name: 'Login' })
-        toast.error('Необходима авторизация.')
+        toast.error('Authorization required.')
       }
     }
-    
-    // Обработка других ошибок
+
+    // Handle other errors
     if (error.response) {
       const { status, data } = error.response
-      
+
       switch (status) {
         case 400:
           if (data.detail) {
             toast.error(data.detail)
           } else if (typeof data === 'object') {
-            // Показываем первую ошибку валидации
+            // Show first validation error
             const firstError = Object.values(data)[0]
             if (Array.isArray(firstError)) {
               toast.error(firstError[0])
@@ -80,24 +85,24 @@ api.interceptors.response.use(
           }
           break
         case 403:
-          toast.error('У вас нет прав для выполнения этого действия.')
+          toast.error('You do not have permission to perform this action.')
           break
         case 404:
-          toast.error('Запрашиваемый ресурс не найден.')
+          toast.error('The requested resource was not found.')
           break
         case 429:
-          toast.error('Слишком много запросов. Попробуйте позже.')
+          toast.error('Too many requests. Please try again later.')
           break
         case 500:
-          toast.error('Внутренняя ошибка сервера. Попробуйте позже.')
+          toast.error('Internal server error. Please try again later.')
           break
         default:
-          toast.error('Произошла неожиданная ошибка.')
+          toast.error('An unexpected error occurred.')
       }
     } else if (error.request) {
-      toast.error('Не удается подключиться к серверу.')
+      toast.error('Unable to connect to the server.')
     } else {
-      toast.error('Произошла ошибка при отправке запроса.')
+      toast.error('An error occurred while sending the request.')
     }
     
     return Promise.reject(error)
@@ -116,62 +121,84 @@ export const authAPI = {
   changePassword: (data) => api.put('/api/v1/auth/change-password/', data)
 }
 
+// E-Commerce API Endpoints
+
+// Products & Catalog
+export const productsAPI = {
+  getAll: (params) => api.get('/products/', { params }),
+  getBySlug: (slug) => api.get(`/products/${slug}/`),
+  create: (data) => api.post('/products/', apiUtils.createFormData(data)),
+  update: (slug, data) => api.put(`/products/${slug}/`, apiUtils.createFormData(data)),
+  delete: (slug) => api.delete(`/products/${slug}/`)
+}
+
 export const categoriesAPI = {
-  getAll: (params) => api.get('/api/v1/posts/categories/', { params }),
-  getById: (slug) => api.get(`/api/v1/posts/categories/${slug}/`),
-  create: (data) => api.post('/api/v1/posts/categories/', data),
-  update: (slug, data) => api.put(`/api/v1/posts/categories/${slug}/`, data),
-  updatePartial: (slug, data) => api.patch(`/api/v1/posts/categories/${slug}/`, data),
-  delete: (slug) => api.delete(`/api/v1/posts/categories/${slug}/`),
-  getPosts: (slug, params) => api.get(`/api/v1/posts/categories/${slug}/posts/`, { params })
+  getAll: (params) => api.get('/categories/', { params }),
+  getBySlug: (slug) => api.get(`/categories/${slug}/`),
+  getProducts: (slug, params) => api.get(`/categories/${slug}/products/`, { params })
 }
 
-export const postsAPI = {
-  getAll: (params) => api.get('/api/v1/posts/', { params }),
-  getById: (slug) => api.get(`/api/v1/posts/${slug}/`),
-  create: (data) => api.post('/api/v1/posts/', data),
-  update: (slug, data) => api.put(`/api/v1/posts/${slug}/`, data),
-  updatePartial: (slug, data) => api.patch(`/api/v1/posts/${slug}/`, data),
-  delete: (slug) => api.delete(`/api/v1/posts/${slug}/`),
-  getMyPosts: (params) => api.get('/api/v1/posts/my-posts/', { params }),
-  getPopular: () => api.get('/api/v1/posts/popular/'),
-  getRecent: () => api.get('/api/v1/posts/recent/')
+export const brandsAPI = {
+  getAll: (params) => api.get('/brands/', { params }),
+  getBySlug: (slug) => api.get(`/brands/${slug}/`)
 }
 
-export const subscriptionAPI = {
-  getPlans: () => api.get('/api/v1/subscribe/plans/'),
-  getStatus: () => api.get('/api/v1/subscribe/status/'),
-  getMySubscription: () => api.get('/api/v1/subscribe/my-subscription/'),
-  cancelSubscription: () => api.post('/api/v1/subscribe/cancel/'),
-  
-  // Pinned posts
-  getPinnedPost: () => api.get('/api/v1/subscribe/pinned-post/'),
-  pinPost: (data) => api.post('/api/v1/subscribe/pin-post/', data),
-  unpinPost: () => api.post('/api/v1/subscribe/unpin-post/'),
-  getPinnedPosts: () => api.get('/api/v1/subscribe/pinned-posts/'),
-  canPinPost: (postId) => api.get(`/api/v1/subscribe/can-pin/${postId}/`)
+// Shopping Cart
+export const cartAPI = {
+  getCart: () => api.get('/cart/'),
+  addItem: (data) => api.post('/cart/add/', data),
+  updateItem: (itemId, data) => api.patch(`/cart/items/${itemId}/update/`, data),
+  removeItem: (itemId) => api.delete(`/cart/items/${itemId}/remove/`),
+  clear: () => api.delete('/cart/clear/')
 }
 
-export const paymentAPI = {
-  createCheckoutSession: (data) => api.post('/api/v1/payment/create-checkout-session/', data),
-  getPaymentStatus: (paymentId) => api.get(`/api/v1/payment/payments/${paymentId}/status/`),
-  getPaymentHistory: () => api.get('/api/v1/payment/payments/history/'),
-  cancelPayment: (paymentId) => api.post(`/api/v1/payment/payments/${paymentId}/cancel/`)
+// Orders & Checkout
+export const ordersAPI = {
+  getAll: (params) => api.get('/payment/orders/', { params }),
+  getByOrderNumber: (orderNumber) => api.get(`/payment/orders/${orderNumber}/`),
+  create: (data) => api.post('/payment/orders/create/', data),
+  cancel: (orderNumber) => api.post(`/payment/orders/${orderNumber}/cancel/`)
 }
 
-export const commentsAPI = {
-  getAll: (params) => api.get('/api/v1/comments/', { params }),
-  getById: (id) => api.get(`/api/v1/comments/${id}/`),
-  create: (data, config = {}) => api.post('/api/v1/posts/', data, config),
-  update: (id, data) => api.put(`/api/v1/comments/${id}/`, data),
-  updatePartial: (id, data) => api.patch(`/api/v1/comments/${id}/`, data),
-  delete: (id) => api.delete(`/api/v1/comments/${id}/`),
-  getMyComments: (params) => api.get('/api/v1/comments/my-comments/', { params }),
-  getPostComments: (postId) => api.get(`/api/v1/comments/post/${postId}/`),
-  getCommentReplies: (commentId) => api.get(`/api/v1/comments/${commentId}/replies/`)
+export const shippingAPI = {
+  getAll: () => api.get('/payment/shipping-addresses/'),
+  create: (data) => api.post('/payment/shipping-addresses/create/', data),
+  update: (id, data) => api.patch(`/payment/shipping-addresses/${id}/update/`, data),
+  delete: (id) => api.delete(`/payment/shipping-addresses/${id}/delete/`),
+  setDefault: (id) => api.post(`/payment/shipping-addresses/${id}/set-default/`)
 }
 
-// Утилиты для загрузки файлов
+export const paymentsAPI = {
+  create: (orderNumber) => api.post(`/payment/payments/${orderNumber}/create/`),
+  getDetails: (id) => api.get(`/payment/payments/${id}/`)
+}
+
+// Coupons
+export const couponsAPI = {
+  validate: (data) => api.post('/payment/coupons/validate/', data)
+}
+
+// Wishlist
+export const wishlistAPI = {
+  getAll: () => api.get('/wishlist/'),
+  add: (data) => api.post('/wishlist/add/', data),
+  remove: (productId) => api.delete(`/wishlist/remove/${productId}/`)
+}
+
+// Reviews
+export const reviewsAPI = {
+  getByProduct: (productSlug) => api.get(`/products/${productSlug}/reviews/`),
+  create: (productSlug, data) => api.post(`/products/${productSlug}/reviews/create/`, data),
+  update: (id, data) => api.put(`/reviews/${id}/`, data),
+  delete: (id) => api.delete(`/reviews/${id}/`)
+}
+
+// Tags
+export const tagsAPI = {
+  getAll: () => api.get('/tags/')
+}
+
+// File upload utilities
 export const uploadAPI = {
   uploadImage: (file, onProgress) => {
     const formData = new FormData()
@@ -193,9 +220,9 @@ export const uploadAPI = {
   }
 }
 
-// Утилиты для работы с данными
+// Data handling utilities
 export const apiUtils = {
-  // Создание FormData для загрузки файлов
+  // Create FormData for file uploads
   createFormData: (data) => {
     const formData = new FormData()
     
@@ -214,8 +241,8 @@ export const apiUtils = {
     
     return formData
   },
-  
-  // Построение query параметров
+
+  // Build query parameters
   buildQueryParams: (params) => {
     const searchParams = new URLSearchParams()
     
@@ -232,13 +259,13 @@ export const apiUtils = {
     
     return searchParams.toString()
   },
-  
-  // Безопасное извлечение данных из ответа
+
+  // Safely extract data from response
   extractData: (response, defaultValue = null) => {
     return response?.data || defaultValue
   },
-  
-  // Безопасное извлечение пагинации
+
+  // Safely extract pagination
   extractPagination: (response) => {
     const data = response?.data
     return {

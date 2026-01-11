@@ -1,9 +1,9 @@
 <template>
   <div id="app" class="min-h-screen bg-gray-50">
-    <!-- Навигация -->
+    <!-- Navigation -->
     <AppHeader />
-    
-    <!-- Основной контент -->
+
+    <!-- Main Content -->
     <main class="min-h-screen">
       <router-view v-slot="{ Component, route }">
         <transition
@@ -15,10 +15,10 @@
         </transition>
       </router-view>
     </main>
-    
-    <!-- Футер -->
+
+    <!-- Footer -->
     <AppFooter />
-    
+
     <!-- Loading overlay -->
     <div
       v-if="isGlobalLoading"
@@ -26,7 +26,7 @@
     >
       <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
         <div class="loading-spinner"></div>
-        <span class="text-gray-600">Загрузка...</span>
+        <span class="text-gray-600">Loading...</span>
       </div>
     </div>
   </div>
@@ -35,7 +35,8 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { useSubscriptionStore } from '@/stores/subscription' // Добавить
+import { useCartStore } from '@/stores/cart'
+import { useWishlistStore } from '@/stores/wishlist'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 
@@ -47,44 +48,48 @@ export default {
   },
   setup() {
     const authStore = useAuthStore()
-    const subscriptionStore = useSubscriptionStore() // Добавить
+    const cartStore = useCartStore()
+    const wishlistStore = useWishlistStore()
     const isInitializing = ref(true)
-    
+
     const isGlobalLoading = computed(() => {
       return isInitializing.value && !authStore.isInitialized
     })
-    
+
     const getTransitionName = (route) => {
       if (route.meta?.transition) {
         return route.meta.transition
       }
-      
-      if (route.name === 'PostDetail') {
+
+      if (route.name === 'product-detail') {
         return 'slide-up'
       }
-      
-      if (route.name === 'Login' || route.name === 'Register') {
+
+      if (route.name === 'login' || route.name === 'register') {
         return 'fade'
       }
-      
+
       return 'fade'
     }
-    
+
     onMounted(async () => {
       try {
         await authStore.initializeAuth()
-        
-        // Если пользователь авторизован, загружаем статус подписки
+
+        // Initialize cart and wishlist for authenticated users
         if (authStore.isAuthenticated) {
-          subscriptionStore.fetchSubscriptionStatus()
+          await Promise.all([
+            cartStore.fetchCart().catch(err => {}),
+            wishlistStore.fetchWishlist().catch(err => {})
+          ])
         }
       } catch (error) {
-        console.error('Ошибка инициализации приложения:', error)
+        // Handle error silently or show user-friendly message
       } finally {
         isInitializing.value = false
       }
     })
-    
+
     return {
       isGlobalLoading,
       getTransitionName
@@ -94,7 +99,7 @@ export default {
 </script>
 
 <style scoped>
-/* Переходы между страницами */
+/* Page transitions */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

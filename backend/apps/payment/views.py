@@ -11,7 +11,7 @@ from .serializers import (
     ShippingAddressSerializer, OrderSerializer, OrderCreateSerializer,
     CouponSerializer, CouponValidateSerializer, PaymentSerializer
 )
-
+from .services import StripeService, WebhookEvent, PaymentService
 
 # ==================== Shipping Address Views ====================
 
@@ -253,37 +253,41 @@ class PaymentCreateView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Here you would integrate with payment gateway (Stripe, PayPal, etc.)
+
+        session = StripeService.create_checkout_session(request.user, order, "","")
         # For now, we'll simulate a successful payment
+        if session:
+            import uuid
+            # Create payment record
+            payment = Payment.objects.create(
+                order=order,
+                payment_id=f"PAY-{uuid.uuid4().hex[:12].upper()}",
+                payment_method=order.payment_method,
+                amount=order.total,
+                status='pending',
+                stripe_session_id=session['session_id'],
+                url=session['checkout_url']
+            )
 
-        # Create payment record
-        import uuid
-        payment = Payment.objects.create(
-            order=order,
-            payment_id=f"PAY-{uuid.uuid4().hex[:12].upper()}",
-            payment_method=order.payment_method,
-            amount=order.total,
-            status='completed'
-        )
+            # Update order
+            order.is_paid = True
+            order.paid_at = timezone.now()
+            order.status = 'paid'
+            order.save()
 
-        # Update order
-        order.is_paid = True
-        order.paid_at = timezone.now()
-        order.status = 'paid'
-        order.save()
+            # Add to status history
+            OrderStatusHistory.objects.create(
+                order=order,
+                status='paid',
+                notes='Payment completed',
+                changed_by=request.user
+            )
 
-        # Add to status history
-        OrderStatusHistory.objects.create(
-            order=order,
-            status='paid',
-            notes='Payment completed',
-            changed_by=request.user
-        )
-
-        return Response({
-            'message': 'Payment processed successfully',
-            'payment': PaymentSerializer(payment).data,
-            'order': OrderSerializer(order).data
-        }, status=status.HTTP_200_OK)
+            return Response({
+                'message': 'Payment processed successfully',
+                'payment': PaymentSerializer(payment).data,
+                'order': OrderSerializer(order).data
+            }, status=status.HTTP_200_OK)
 
 
 class PaymentDetailView(generics.RetrieveAPIView):

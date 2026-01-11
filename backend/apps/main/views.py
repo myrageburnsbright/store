@@ -167,9 +167,7 @@ class ProductListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True).select_related(
             'category', 'brand'
-        ).prefetch_related('images').annotate(
-            reviews_count=Count('reviews', filter=Q(reviews__is_approved=True))
-        )
+        ).prefetch_related('images')
 
         # Filter by price range
         min_price = self.request.query_params.get('min_price', None)
@@ -204,9 +202,7 @@ class ProductDetailView(generics.RetrieveAPIView):
         return Product.objects.filter(is_active=True).select_related(
             'category', 'brand'
         ).prefetch_related(
-            'images', 'variants', 'reviews__user', 'tags'
-        ).annotate(
-            reviews_count=Count('reviews', filter=Q(reviews__is_approved=True))
+            'images', 'variants', 'reviews__user', 'product_tags'
         )
 
     def retrieve(self, request, *args, **kwargs):

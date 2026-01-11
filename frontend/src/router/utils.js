@@ -55,7 +55,6 @@ export const validateSlug = (to, from, next) => {
       
       next()
     } catch (error) {
-      console.error('Ошибка проверки прав доступа:', error)
       next({ name: 'NotFound' })
     }
   }
@@ -98,9 +97,6 @@ export const validateSlug = (to, from, next) => {
    * @param {Function} next - Функция для продолжения навигации
    */
   export const logNavigation = (to, from, next) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
-      console.log('📊 Route meta:', to.meta)
-    }
+    // Navigation logging disabled
     next()
   }

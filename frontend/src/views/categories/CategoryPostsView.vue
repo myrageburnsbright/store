@@ -9,22 +9,22 @@
         <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ category.name }}</h1>
         <p v-if="category.description" class="text-gray-600 mb-4">{{ category.description }}</p>
         <p class="text-gray-500">
-          {{ posts.length }} {{ pluralize(posts.length, 'статья', 'статьи', 'статей') }}
+          {{ posts.length }} {{ pluralize(posts.length, 'post', 'posts', 'posts') }}
         </p>
       </div>
-      
+
       <div v-if="postsStore.isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <PostCardSkeleton v-for="i in 6" :key="i" />
       </div>
-      
+
       <div v-else-if="posts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <PostCard v-for="post in posts" :key="post.id" :post="post" />
       </div>
-      
+
       <div v-else class="text-center py-16">
         <DocumentTextIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Статьи не найдены</h3>
-        <p class="text-gray-500">В этой категории пока нет опубликованных статей</p>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No Posts Found</h3>
+        <p class="text-gray-500">There are no published posts in this category yet</p>
       </div>
     </div>
   </div>
@@ -75,7 +75,7 @@ export default {
         category.value = data.category
         posts.value = data.posts
       } catch (error) {
-        console.error('Ошибка загрузки постов категории:', error)
+        // Handle error silently
       }
     })
     

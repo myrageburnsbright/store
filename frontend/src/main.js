@@ -10,7 +10,7 @@ import 'vue-toastification/dist/index.css'
 const app = createApp(App)
 const pinia = createPinia()
 
-// Настройка Toast уведомлений
+// Toast notification configuration
 const toastOptions = {
   position: POSITION.TOP_RIGHT,
   timeout: 5000,

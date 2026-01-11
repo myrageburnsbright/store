@@ -61,7 +61,6 @@ class BrandSerializer(serializers.ModelSerializer):
 
 class ProductImageSerializer(serializers.ModelSerializer):
     """For product images"""
-
     class Meta:
         model = ProductImage
         fields = ['product', 'id', 'image', 'alt_text', 'is_primary', 'order']

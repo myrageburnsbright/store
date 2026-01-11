@@ -4,13 +4,13 @@
     <div class="container-narrow">
       <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="card-header">
-          <h1 class="text-2xl font-bold text-gray-900">Смена пароля</h1>
+          <h1 class="text-2xl font-bold text-gray-900">Change Password</h1>
         </div>
-        
+
         <div class="card-body">
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <div>
-              <label class="form-label">Текущий пароль</label>
+              <label class="form-label">Current Password</label>
               <input
                 v-model="form.old_password"
                 type="password"
@@ -22,9 +22,9 @@
                 {{ errors.old_password }}
               </div>
             </div>
-            
+
             <div>
-              <label class="form-label">Новый пароль</label>
+              <label class="form-label">New Password</label>
               <input
                 v-model="form.new_password"
                 type="password"
@@ -36,9 +36,9 @@
                 {{ errors.new_password }}
               </div>
             </div>
-            
+
             <div>
-              <label class="form-label">Подтверждение нового пароля</label>
+              <label class="form-label">Confirm New Password</label>
               <input
                 v-model="form.new_password_confirm"
                 type="password"
@@ -50,14 +50,14 @@
                 {{ errors.new_password_confirm }}
               </div>
             </div>
-            
+
             <div v-if="errors.general" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {{ errors.general }}
             </div>
-            
+
             <div class="flex justify-end space-x-3">
               <router-link to="/profile" class="btn-outline">
-                Отмена
+                Cancel
               </router-link>
               <button
                 type="submit"
@@ -65,7 +65,7 @@
                 class="btn-primary"
               >
                 <div v-if="authStore.isLoading" class="loading-spinner mr-2"></div>
-                Изменить пароль
+                Change Password
               </button>
             </div>
           </form>
@@ -87,36 +87,36 @@ export default {
     const router = useRouter()
     const authStore = useAuthStore()
     const toast = useToast()
-    
+
     const form = reactive({
       old_password: '',
       new_password: '',
       new_password_confirm: ''
     })
-    
+
     const errors = ref({})
-    
+
     const handleSubmit = async () => {
       errors.value = {}
-      
+
       if (form.new_password !== form.new_password_confirm) {
-        errors.value.new_password_confirm = 'Пароли не совпадают'
+        errors.value.new_password_confirm = 'Passwords do not match'
         return
       }
-      
+
       try {
         await authStore.changePassword(form)
-        toast.success('Пароль успешно изменен')
+        toast.success('Password changed successfully')
         router.push('/profile')
       } catch (error) {
         if (error.response?.data) {
           Object.assign(errors.value, error.response.data)
         } else {
-          errors.value.general = 'Ошибка изменения пароля'
+          errors.value.general = 'Error changing password'
         }
       }
     }
-    
+
     return {
       authStore,
       form,

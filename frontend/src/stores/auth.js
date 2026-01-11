@@ -4,14 +4,14 @@ import Cookies from 'js-cookie'
 import { authAPI } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
-  // Состояние
+  // State
   const user = ref(null)
   const token = ref(null)
   const refreshToken = ref(null)
   const isLoading = ref(false)
   const isInitialized = ref(false)
 
-  // Вычисляемые свойства
+  // Computed properties
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const userFullName = computed(() => {
     if (!user.value) return ''
@@ -27,25 +27,25 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value.username.charAt(0).toUpperCase()
   })
 
-  // Действия
+  // Actions
   const setTokens = (accessToken, refreshTokenValue) => {
     token.value = accessToken
     refreshToken.value = refreshTokenValue
-    
-    // Сохраняем токены в cookies
+
+    // Save tokens in cookies
     if (accessToken) {
-      Cookies.set('access_token', accessToken, { 
-        expires: 1, // 1 день
+      Cookies.set('access_token', accessToken, {
+        expires: 1, // 1 day
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       })
     } else {
       Cookies.remove('access_token')
     }
-    
+
     if (refreshTokenValue) {
-      Cookies.set('refresh_token', refreshTokenValue, { 
-        expires: 7, // 7 дней
+      Cookies.set('refresh_token', refreshTokenValue, {
+        expires: 7, // 7 days
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       })
@@ -68,23 +68,23 @@ export const useAuthStore = defineStore('auth', () => {
 
   const initializeAuth = async () => {
     if (isInitialized.value) return
-    
+
     try {
       const savedAccessToken = Cookies.get('access_token')
       const savedRefreshToken = Cookies.get('refresh_token')
-      
+
       if (savedAccessToken && savedRefreshToken) {
         token.value = savedAccessToken
         refreshToken.value = savedRefreshToken
-        
-        // Пытаемся получить данные пользователя
+
+        // Try to get user data
         try {
           const response = await authAPI.getProfile()
           user.value = response.data
         } catch (error) {
-          // Если не удалось получить профиль, очищаем токены
+          // If unable to get profile, clear tokens
           if (error.response?.status === 401) {
-            // Пытаемся обновить токен
+            // Try to refresh token
             try {
               await refreshAccessToken()
               const profileResponse = await authAPI.getProfile()
@@ -98,7 +98,6 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
     } catch (error) {
-      console.error('Ошибка инициализации аутентификации:', error)
       clearAuth()
     } finally {
       isInitialized.value = true
@@ -146,8 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
         await authAPI.logout({ refresh_token: refreshToken.value })
       }
     } catch (error) {
-      // Игнорируем ошибки при logout
-      console.warn('Ошибка при выходе:', error)
+      // Ignore logout errors
     } finally {
       clearAuth()
       isLoading.value = false
@@ -211,18 +209,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshUserProfile = async () => {
     if (!isAuthenticated.value) return
-    
+
     try {
       const response = await authAPI.getProfile()
       user.value = response.data
       return response.data
     } catch (error) {
-      console.error('Ошибка обновления профиля:', error)
       throw error
     }
   }
 
-  // Проверка прав доступа
+  // Access rights checks
   const canEditPost = (post) => {
     return user.value && (user.value.id === post.author || user.value.is_staff)
   }
@@ -236,19 +233,19 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    // Состояние
+    // State
     user,
     token,
     refreshToken,
     isLoading,
     isInitialized,
-    
-    // Вычисляемые свойства
+
+    // Computed properties
     isAuthenticated,
     userFullName,
     userInitials,
-    
-    // Действия
+
+    // Actions
     initializeAuth,
     login,
     register,
@@ -258,13 +255,13 @@ export const useAuthStore = defineStore('auth', () => {
     updateProfilePartial,
     changePassword,
     refreshUserProfile,
-    
-    // Проверки прав
+
+    // Permission checks
     canEditPost,
     canEditComment,
     canModerate,
-    
-    // Утилиты
+
+    // Utilities
     setTokens,
     setUser,
     clearAuth
