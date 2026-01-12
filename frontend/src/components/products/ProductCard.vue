@@ -31,19 +31,19 @@
         </span>
       </div>
 
-      <!-- Discount Badge -->
+      <!-- Discount Badge (top-left) -->
       <div
         v-if="product.discount_percentage > 0"
-        class="absolute top-2 right-2"
+        class="absolute top-2 left-2 z-10"
       >
-        <span class="badge badge-error">
+        <span class="inline-flex items-center px-2 py-1 text-xs font-bold text-white bg-error-600 rounded">
           -{{ product.discount_percentage }}%
         </span>
       </div>
 
-      <!-- Wishlist Button -->
+      <!-- Wishlist Button (top-right) -->
       <button
-        class="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+        class="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10"
         @click.stop="toggleWishlist"
         :disabled="isTogglingWishlist"
       >
@@ -84,11 +84,11 @@
       </div>
 
       <!-- Price -->
-      <div class="flex items-baseline gap-2 mb-3">
-        <span class="price">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-xl font-bold text-gray-900">
           ${{ finalPrice }}
         </span>
-        <span v-if="product.discount_percentage > 0" class="price-old">
+        <span v-if="product.discount_percentage > 0" class="text-sm text-gray-500 line-through">
           ${{ product.base_price }}
         </span>
       </div>

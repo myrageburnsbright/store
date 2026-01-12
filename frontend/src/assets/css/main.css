@@ -274,11 +274,12 @@ body {
 
 /* Quantity selector */
 .quantity-selector {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   overflow: hidden;
+  max-width: fit-content;
 }
 
 .quantity-btn {
@@ -454,6 +455,12 @@ body {
 .Vue-Toastification__toast--info {
   background-color: var(--color-accent-50);
   border-left: 4px solid var(--color-accent-500);
+}
+
+/* Toast container positioning - below header */
+.Vue-Toastification__container.top-right {
+  top: 80px !important; /* Position below header (header is ~64px + spacing) */
+  right: 1rem !important;
 }
 
 @keyframes spin {

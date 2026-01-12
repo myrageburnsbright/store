@@ -27,7 +27,7 @@ class CategoryListView(generics.ListAPIView):
     ordering = ['order', 'name']
 
     def get_queryset(self):
-        queryset = Category.objects.filter(is_active=True)
+        queryset = Category.objects.filter(is_active=True).prefetch_related('children', 'parent')
 
         # Filter by parent category if specified
         parent_id = self.request.query_params.get('parent', None)
@@ -159,7 +159,7 @@ class ProductListView(generics.ListAPIView):
     serializer_class = ProductListSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category__slug', 'brand__slug', 'is_featured', 'is_new']
+    filterset_fields = ['brand__slug', 'is_featured', 'is_new']
     search_fields = ['name', 'description', 'short_description', 'sku']
     ordering_fields = ['created_at', 'base_price', 'sales_count', 'views_count']
     ordering = ['-created_at']
@@ -168,6 +168,18 @@ class ProductListView(generics.ListAPIView):
         queryset = Product.objects.filter(is_active=True).select_related(
             'category', 'brand'
         ).prefetch_related('images')
+
+        # Filter by category (includes all subcategories recursively)
+        category_slug = self.request.query_params.get('category__slug', None)
+        if category_slug:
+            try:
+                category = Category.objects.get(slug=category_slug, is_active=True)
+                # Get all descendant categories (children, grandchildren, etc.)
+                descendant_ids = self._get_descendant_category_ids(category)
+                descendant_ids.append(category.id)
+                queryset = queryset.filter(category_id__in=descendant_ids)
+            except Category.DoesNotExist:
+                queryset = queryset.none()
 
         # Filter by price range
         min_price = self.request.query_params.get('min_price', None)
@@ -190,6 +202,15 @@ class ProductListView(generics.ListAPIView):
             queryset = queryset.filter(stock_quantity__gt=0)
 
         return queryset
+
+    def _get_descendant_category_ids(self, category):
+        """Recursively get all descendant category IDs"""
+        descendant_ids = []
+        children = category.children.filter(is_active=True)
+        for child in children:
+            descendant_ids.append(child.id)
+            descendant_ids.extend(self._get_descendant_category_ids(child))
+        return descendant_ids
 
 
 class ProductDetailView(generics.RetrieveAPIView):

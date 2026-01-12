@@ -11,17 +11,47 @@ User = get_user_model()
 class CategoryListSerializer(serializers.ModelSerializer):
     """For displaying categories in lists"""
     products_count = serializers.IntegerField(read_only=True)
+    children = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'description', 'image', 'is_active', 'products_count']
+        fields = ['id', 'name', 'slug', 'description', 'image', 'is_active', 'products_count', 'parent', 'children']
         read_only_fields = ['slug']
+
+    def get_children(self, obj):
+        """Return active children categories without recursion"""
+        children = obj.children.filter(is_active=True)
+        return [{
+            'id': child.id,
+            'name': child.name,
+            'slug': child.slug,
+            'description': child.description,
+            'image': child.image.url if child.image else None,
+            'products_count': child.products_count
+        } for child in children]
+
+
+class CategoryParentSerializer(serializers.ModelSerializer):
+    """Recursive serializer for parent categories - builds full breadcrumb chain"""
+    products_count = serializers.IntegerField(read_only=True)
+    parent = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'description', 'image', 'is_active',
+                  'products_count', 'parent']
+
+    def get_parent(self, obj):
+        """Recursively serialize parent to build full chain"""
+        if obj.parent:
+            return CategoryParentSerializer(obj.parent).data
+        return None
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):
     """For detailed category view with parent/children info"""
     products_count = serializers.IntegerField(read_only=True)
-    parent = CategoryListSerializer(read_only=True)
+    parent = CategoryParentSerializer(read_only=True)
     children = CategoryListSerializer(many=True, read_only=True)
     parent_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
@@ -128,7 +158,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     """For detailed product view - all data including images, variants, reviews"""
-    category = CategoryListSerializer(read_only=True)
+    category = CategoryParentSerializer(read_only=True)
     brand = BrandSerializer(read_only=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     discount_percentage = serializers.IntegerField(read_only=True)

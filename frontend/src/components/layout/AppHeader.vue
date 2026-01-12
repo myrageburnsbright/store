@@ -97,16 +97,17 @@
           <div v-if="authStore.isAuthenticated" class="relative">
             <button
               @click.stop="toggleUserMenu"
-              class="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-500"
+              class="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg border-2 hover:border-accent-400 hover:bg-accent-50 transition-all focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 h-10"
+              :class="showUserMenu ? 'border-accent-500 bg-accent-50' : 'border-gray-200 bg-white'"
             >
-              <div class="w-8 h-8 bg-accent-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+              <div class="w-7 h-7 bg-gradient-to-br from-accent-500 to-accent-600 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm ring-2 ring-white">
                 {{ authStore.userInitials }}
               </div>
-              <span class="hidden sm:block text-sm font-medium text-gray-700">
+              <span class="hidden sm:block text-sm font-medium text-gray-800">
                 {{ authStore.userFullName }}
               </span>
               <ChevronDownIcon
-                class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                class="w-4 h-4 text-gray-600 transition-transform duration-200"
                 :class="{ 'rotate-180': showUserMenu }"
               />
             </button>

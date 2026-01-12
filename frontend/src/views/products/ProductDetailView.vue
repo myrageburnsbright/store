@@ -1,5 +1,8 @@
 <template>
   <div class="container-content py-8">
+    <!-- Breadcrumbs -->
+    <BreadcrumbsNav v-if="product && !productsStore.isLoadingProduct" :breadcrumbs="breadcrumbs" />
+
     <!-- Loading State -->
     <div v-if="productsStore.isLoadingProduct" class="py-12 text-center">
       <div class="loading-spinner mx-auto"></div>
@@ -182,6 +185,8 @@ import { useProductsStore } from '@/stores/products'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
 import { useAuthStore } from '@/stores/auth'
+import { useProductBreadcrumbs } from '@/composables/useBreadcrumbs'
+import BreadcrumbsNav from '@/components/ui/BreadcrumbsNav.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -196,6 +201,9 @@ const isAddingToCart = ref(false)
 const isTogglingWishlist = ref(false)
 
 const product = computed(() => productsStore.currentProduct)
+
+// Breadcrumbs for product page
+const breadcrumbs = useProductBreadcrumbs(product, computed(() => product.value?.name))
 
 const currentImage = computed(() => {
   if (product.value?.images && product.value.images.length > 0) {
