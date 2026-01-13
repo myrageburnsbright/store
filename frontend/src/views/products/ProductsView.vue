@@ -20,18 +20,20 @@
       </div>
 
       <!-- Sort -->
-      <div class="w-full md:w-64">
+      <div class="w-full md:w-64 flex items-center gap-3">
+        <label for="sort" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sort by</label>
         <select
+          id="sort"
           v-model="sortBy"
-          class="form-select w-full"
+          class="form-select flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
           @change="handleSort"
         >
+          <option value="-sales_count">Most Popular</option>
           <option value="-created_at">Newest First</option>
-          <option value="name">Name (A-Z)</option>
-          <option value="-name">Name (Z-A)</option>
           <option value="base_price">Price: Low to High</option>
           <option value="-base_price">Price: High to Low</option>
-          <option value="-sales_count">Most Popular</option>
+          <option value="name">Name (A-Z)</option>
+          <option value="-name">Name (Z-A)</option>
         </select>
       </div>
     </div>

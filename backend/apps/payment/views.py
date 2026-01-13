@@ -3,6 +3,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from django.conf import settings
+import stripe
+import json
 from .models import (
     ShippingAddress, Order, OrderItem, Payment,
     Coupon, OrderStatusHistory
@@ -11,7 +17,7 @@ from .serializers import (
     ShippingAddressSerializer, OrderSerializer, OrderCreateSerializer,
     CouponSerializer, CouponValidateSerializer, PaymentSerializer
 )
-from .services import StripeService, WebhookEvent, PaymentService
+from .services import StripeService, WebhookService, PaymentService
 
 # ==================== Shipping Address Views ====================
 
@@ -236,7 +242,7 @@ class CouponListView(generics.ListAPIView):
 # ==================== Payment Views ====================
 
 class PaymentCreateView(APIView):
-    """Process payment for an order"""
+    """Process payment for an order - creates Stripe checkout session"""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, order_number):
@@ -252,42 +258,74 @@ class PaymentCreateView(APIView):
                 'error': 'Order is already paid'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Here you would integrate with payment gateway (Stripe, PayPal, etc.)
+        # Validate payment method is Stripe
+        if order.payment_method != 'stripe':
+            return Response({
+                'error': 'Only Stripe payments are supported. Please create a new order with Stripe as the payment method.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        session = StripeService.create_checkout_session(request.user, order, "","")
-        # For now, we'll simulate a successful payment
-        if session:
+        # Get success and cancel URLs from request (frontend should provide these)
+        frontend_url = request.data.get('frontend_url', settings.FRONTEND_URL if hasattr(settings, 'FRONTEND_URL') else 'http://localhost:5173')
+        success_url = f"{frontend_url}/checkout/success?order_number={order_number}"
+        cancel_url = f"{frontend_url}/checkout/cancel?order_number={order_number}"
+
+        # Validate coupon if provided but DON'T save to order
+        # Store coupon code in session metadata for webhook processing
+        coupon_code = None
+        if request.data.get('coupon_code'):
+            try:
+                coupon = Coupon.objects.get(code=request.data.get('coupon_code').upper(), is_active=True)
+                if coupon.is_valid:
+                    coupon_code = coupon.code
+            except Coupon.DoesNotExist:
+                pass
+
+        # Create Stripe checkout session
+        try:
+            session = StripeService.create_checkout_session(
+                request.user,
+                order,
+                success_url,
+                cancel_url,
+                coupon_code=coupon_code
+            )
+
+            if not session:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"StripeService.create_checkout_session returned None for order {order_number}")
+                return Response({
+                    'error': 'Failed to create payment session. Please check Stripe configuration.'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
             import uuid
-            # Create payment record
             payment = Payment.objects.create(
                 order=order,
                 payment_id=f"PAY-{uuid.uuid4().hex[:12].upper()}",
                 payment_method=order.payment_method,
                 amount=order.total,
+                currency='USD',
                 status='pending',
-                stripe_session_id=session['session_id'],
-                url=session['checkout_url']
+                stripe_session_id=session['session_id']
             )
 
-            # Update order
-            order.is_paid = True
-            order.paid_at = timezone.now()
-            order.status = 'paid'
-            order.save()
-
-            # Add to status history
-            OrderStatusHistory.objects.create(
-                order=order,
-                status='paid',
-                notes='Payment completed',
-                changed_by=request.user
-            )
-
+            # Return checkout URL for frontend to redirect
             return Response({
-                'message': 'Payment processed successfully',
-                'payment': PaymentSerializer(payment).data,
-                'order': OrderSerializer(order).data
+                'message': 'Payment session created',
+                'checkout_url': session['checkout_url'],
+                'session_id': session['session_id'],
+                'payment': PaymentSerializer(payment).data
             }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            import logging
+            import traceback
+            logger = logging.getLogger(__name__)
+            logger.error(f"Payment processing error for order {order_number}: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response({
+                'error': f'Payment processing error: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PaymentDetailView(generics.RetrieveAPIView):
@@ -349,3 +387,34 @@ class OrderUpdateStatusView(APIView):
             'message': f'Order status updated to {new_status}',
             'order': OrderSerializer(order).data
         }, status=status.HTTP_200_OK)
+
+
+# ==================== Stripe Webhook ====================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def stripe_webhook(request):
+    """Handle Stripe webhook events"""
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+    # Verify webhook signature
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError as e:
+        # Invalid payload
+        return JsonResponse({'error': 'Invalid payload'}, status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return JsonResponse({'error': 'Invalid signature'}, status=400)
+
+    # Process the event through WebhookService
+    try:
+        WebhookService.process_stripe_webhook(event)
+        return JsonResponse({'status': 'success'}, status=200)
+    except Exception as e:
+        # Log error but return 200 to prevent Stripe from retrying
+        print(f"Webhook processing error: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

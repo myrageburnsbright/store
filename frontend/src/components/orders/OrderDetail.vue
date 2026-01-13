@@ -18,9 +18,9 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-6" :class="showActions ? 'lg:grid-cols-3' : 'lg:grid-cols-1'">
       <!-- Main Content -->
-      <div class="lg:col-span-2 space-y-6">
+      <div class="space-y-6" :class="showActions ? 'lg:col-span-2' : ''">
         <!-- Order Items -->
         <div class="card">
           <div class="card-header">
@@ -153,7 +153,7 @@
                 <div class="flex-1 pb-4">
                   <OrderStatusBadge :status="history.status" />
                   <p class="text-sm text-gray-600 mt-1">
-                    {{ formatDate(history.changed_at) }}
+                    {{ formatDate(history.created_at) }}
                   </p>
                   <p v-if="history.notes" class="text-sm text-gray-700 mt-2">
                     {{ history.notes }}
@@ -166,7 +166,7 @@
       </div>
 
       <!-- Sidebar -->
-      <div class="space-y-6">
+      <div v-if="showActions" class="space-y-6">
         <!-- Order Summary -->
         <div class="card sticky top-4">
           <div class="card-header">
@@ -180,13 +180,17 @@
               </div>
 
               <div v-if="order.discount_amount > 0" class="flex justify-between text-success-600">
-                <span>Discount</span>
+                <span>Product Discounts</span>
                 <span>-${{ parseFloat(order.discount_amount).toFixed(2) }}</span>
               </div>
 
-              <div v-if="order.coupon_discount > 0" class="flex justify-between text-success-600">
-                <span>Coupon ({{ order.coupon_code }})</span>
-                <span>-${{ parseFloat(order.coupon_discount).toFixed(2) }}</span>
+              <!-- Coupon Discount -->
+              <div v-if="order.coupon_discount && order.coupon_discount > 0" class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <span class="text-success-700 font-medium">Coupon</span>
+                  <span v-if="order.coupon_code" class="badge badge-success text-xs">{{ order.coupon_code }}</span>
+                </div>
+                <span class="text-success-700 font-medium">-${{ parseFloat(order.coupon_discount).toFixed(2) }}</span>
               </div>
 
               <div class="flex justify-between text-gray-600">
@@ -206,7 +210,7 @@
             </div>
 
             <!-- Actions -->
-            <div class="mt-6 space-y-3">
+            <div v-if="showActions" class="mt-6 space-y-3">
               <button
                 v-if="canCancel"
                 @click="$emit('cancel')"
@@ -253,6 +257,10 @@ const props = defineProps({
   isCancelling: {
     type: Boolean,
     default: false
+  },
+  showActions: {
+    type: Boolean,
+    default: true
   }
 })
 

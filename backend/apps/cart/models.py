@@ -33,7 +33,7 @@ class Cart(models.Model):
     @property
     def subtotal(self):
         """Subtotal before any discounts or taxes"""
-        return sum(item.total_price for item in self.items.all())
+        return sum(item.original_price * item.quantity for item in self.items.all())
 
     @property
     def total_discount(self):

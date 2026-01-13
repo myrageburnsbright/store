@@ -42,8 +42,29 @@
         </ol>
       </nav>
 
-      <!-- Order Detail Component -->
+      <!-- Two Column Layout for Pending Orders with Payment -->
+      <div v-if="order.status === 'pending'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Order Details (2/3 width) -->
+        <div class="lg:col-span-2">
+          <OrderDetail
+            :order="order"
+            :is-cancelling="isCancelling"
+            :show-actions="false"
+            @cancel="handleCancelOrder"
+          />
+        </div>
+
+        <!-- Right: Order Summary with Coupon + Pay Now (1/3 width) -->
+        <OrderSummary
+          :order="order"
+          :is-cancelling="isCancelling"
+          @cancel="handleCancelOrder"
+        />
+      </div>
+
+      <!-- Single Column for Other Order Statuses -->
       <OrderDetail
+        v-else
         :order="order"
         :is-cancelling="isCancelling"
         @cancel="handleCancelOrder"
@@ -57,6 +78,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders'
 import OrderDetail from '@/components/orders/OrderDetail.vue'
+import OrderSummary from '@/components/orders/OrderSummary.vue'
 import { XCircleIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()

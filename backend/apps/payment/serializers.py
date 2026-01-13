@@ -7,6 +7,7 @@ from apps.main.models import Product, ProductVariant
 from apps.cart.models import Cart
 from django.utils import timezone
 from django.db import transaction
+from rest_framework.validators import UniqueForDateValidator
 
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
@@ -84,6 +85,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'subtotal', 'discount_amount', 'tax_amount', 'shipping_cost', 'total',
             'tracking_number', 'shipped_at', 'delivered_at',
             'customer_notes', 'items', 'status_history', 'total_items',
+            'coupon_code', 'coupon_discount',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['user', 'order_number', 'created_at', 'updated_at']
@@ -101,6 +103,12 @@ class OrderCreateSerializer(serializers.Serializer):
         user = self.context['request'].user
         if not ShippingAddress.objects.filter(id=value, user=user, is_active=True).exists():
             raise serializers.ValidationError("Invalid shipping address")
+        return value
+
+    def validate_payment_method(self, value):
+        """Validate payment method - only Stripe is allowed"""
+        if value != 'stripe':
+            raise serializers.ValidationError("Only Stripe payments are currently supported. Other payment methods are coming soon.")
         return value
 
     def validate_coupon_code(self, value):
@@ -147,28 +155,27 @@ class OrderCreateSerializer(serializers.Serializer):
         subtotal = cart.subtotal
         discount_from_products = cart.total_discount
 
-        # Apply coupon if provided
-        coupon_discount = 0
-        coupon = None
+        # Validate coupon if provided but DON'T apply it to order yet
+        # Coupon will be applied only after successful payment (in webhook)
         coupon_code = validated_data.get('coupon_code')
+
+        # Calculate subtotal after product discounts (for coupon validation)
+        from decimal import Decimal
+        subtotal_after_discounts = subtotal - discount_from_products
 
         if coupon_code:
             coupon = Coupon.objects.get(code=coupon_code)
 
-            # Check minimum order amount
-            if subtotal < coupon.minimum_order_amount:
+            # Check minimum order amount (use subtotal after product discounts)
+            if subtotal_after_discounts < coupon.minimum_order_amount:
                 raise serializers.ValidationError({
                     "coupon_code": f"Minimum order amount of ${coupon.minimum_order_amount} required"
                 })
 
-            coupon_discount = coupon.calculate_discount(subtotal)
-
-        from decimal import Decimal
-        # Calculate totals
-        total_discount = discount_from_products + coupon_discount
+        # Calculate totals WITHOUT coupon (coupon applied later in payment webhook)
         tax_amount = Decimal(0)  # TODO: Calculate based on shipping address
         shipping_cost = Decimal(10.00)  # TODO: Calculate based on shipping method
-        total = subtotal - coupon_discount + tax_amount + shipping_cost
+        total = subtotal - discount_from_products + tax_amount + shipping_cost
 
         # Create order
         shipping_address = ShippingAddress.objects.get(id=validated_data['shipping_address_id'])
@@ -178,11 +185,12 @@ class OrderCreateSerializer(serializers.Serializer):
             shipping_address=shipping_address,
             payment_method=validated_data['payment_method'],
             subtotal=subtotal,
-            discount_amount=total_discount,
+            discount_amount=discount_from_products,  # ONLY product discounts, NOT coupon
             tax_amount=tax_amount,
             shipping_cost=shipping_cost,
             total=total,
-            customer_notes=validated_data.get('customer_notes', '')
+            customer_notes=validated_data.get('customer_notes', ''),
+            # DON'T save coupon to order yet - will be saved after payment succeeds
         )
 
         # Create order items from cart
@@ -212,16 +220,7 @@ class OrderCreateSerializer(serializers.Serializer):
             cart_item.product.sales_count += cart_item.quantity
             cart_item.product.save()
 
-        # Create coupon usage record if applicable
-        if coupon:
-            CouponUsage.objects.create(
-                coupon=coupon,
-                user=user,
-                order=order,
-                discount_amount=coupon_discount
-            )
-            coupon.used_count += 1
-            coupon.save()
+        # Coupon usage will be recorded after successful payment (in webhook)
 
         # Create initial status history
         OrderStatusHistory.objects.create(
@@ -295,8 +294,35 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = [
-            'id', 'order', 'payment_id', 'payment_method',
-            'amount', 'currency', 'status', 'transaction_id',
+            'id', 'order', 'payment_id', 'payment_method', 'success_url',
+            'cancel_url', 'amount', 'currency', 'status', 'transaction_id',
             'error_message', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+class OrderOrCartItemSerializer(serializers.Serializer):
+    quantity = serializers.IntegerField(min_value=1, read_only=True)
+    original_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0, read_only=True)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+
+class OrderOrCartSerializer(serializers.Serializer):
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0, read_only=True)
+    tax_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0, read_only=True)
+    shipping_cost = serializers.DecimalField(max_digits=10, decimal_places=2, default=0, read_only=True)
+    total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    items = OrderOrCartItemSerializer(many=True, read_only=True)
+    
+    def create(self, valided_data):
+        items = valided_data.pop('items')
+        res = []
+        for item in items:
+            res.append(item.save())
+
+        return {
+            'data': valided_data,
+            'items': res
+        }

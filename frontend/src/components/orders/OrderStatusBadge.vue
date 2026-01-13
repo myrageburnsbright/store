@@ -31,9 +31,9 @@ const statusLabels = {
 
 const badgeClasses = {
   pending: 'badge-gray',
-  paid: 'badge-primary',
-  processing: 'badge-warning',
-  shipped: 'bg-purple-100 text-purple-800',
+  paid: 'badge-success',
+  processing: 'badge-primary',
+  shipped: 'badge-primary',
   delivered: 'badge-success',
   cancelled: 'badge-error',
   refunded: 'bg-orange-100 text-orange-800'

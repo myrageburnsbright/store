@@ -85,11 +85,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useOrdersStore } from '@/stores/orders'
+import { useToast } from 'vue-toastification'
 import OrderCard from '@/components/orders/OrderCard.vue'
 import PaginationComponent from '@/components/ui/PaginationComponent.vue'
 import { ShoppingBagIcon } from '@heroicons/vue/24/outline'
 
 const ordersStore = useOrdersStore()
+const toast = useToast()
 
 const selectedTab = ref('all')
 const cancellingOrderId = ref(null)

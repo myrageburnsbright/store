@@ -37,7 +37,7 @@
           <!-- Price Info -->
           <div class="mt-2">
             <span class="text-lg font-bold text-gray-900">
-              ${{ parseFloat(item.unit_price).toFixed(2) }}
+              ${{ parseFloat(item.original_price).toFixed(2) }}
             </span>
             <span v-if="item.discount_amount > 0" class="text-sm text-gray-500 ml-2">
               (Saved: ${{ parseFloat(item.discount_amount).toFixed(2) }})

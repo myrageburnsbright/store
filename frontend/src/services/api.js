@@ -45,8 +45,11 @@ api.interceptors.response.use(
   async (error) => {
     const authStore = useAuthStore()
     const originalRequest = error.config
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    // Don't retry if this is already a retry, or if it's the refresh token endpoint itself
+    const isRefreshTokenRequest = originalRequest.url?.includes('/auth/token/refresh')
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshTokenRequest) {
       originalRequest._retry = true
 
       // Attempt to refresh token
@@ -57,15 +60,23 @@ api.interceptors.response.use(
           return api(originalRequest)
         } catch (refreshError) {
           authStore.logout()
-          router.push({ name: 'Login' })
+          router.push({ name: 'login' })
           toast.error('Session expired. Please sign in again.')
           return Promise.reject(refreshError)
         }
       } else {
         authStore.logout()
-        router.push({ name: 'Login' })
+        router.push({ name: 'login' })
         toast.error('Authorization required.')
       }
+    }
+
+    // If refresh token request fails with 401, immediately logout
+    if (error.response?.status === 401 && isRefreshTokenRequest) {
+      authStore.logout()
+      router.push({ name: 'login' })
+      toast.error('Session expired. Please sign in again.')
+      return Promise.reject(error)
     }
 
     // Handle other errors
@@ -169,7 +180,7 @@ export const shippingAPI = {
 }
 
 export const paymentsAPI = {
-  create: (orderNumber) => api.post(`/payment/payments/${orderNumber}/create/`),
+  create: (orderNumber, data = {}) => api.post(`/payment/payments/${orderNumber}/create/`, data),
   getDetails: (id) => api.get(`/payment/payments/${id}/`)
 }
 

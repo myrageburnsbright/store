@@ -91,19 +91,23 @@
             </p>
 
             <!-- Sort Dropdown -->
-            <select
-              v-model="sortBy"
-              @change="handleSortChange"
-              class="form-input form-select w-full sm:w-auto"
-            >
-              <option value="-created_at">Newest First</option>
-              <option value="created_at">Oldest First</option>
-              <option value="name">Name (A-Z)</option>
-              <option value="-name">Name (Z-A)</option>
-              <option value="base_price">Price (Low to High)</option>
-              <option value="-base_price">Price (High to Low)</option>
-              <option value="-sales_count">Most Popular</option>
-            </select>
+            <div class="w-full sm:w-auto flex items-center gap-3">
+              <label for="category-sort" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sort by</label>
+              <select
+                id="category-sort"
+                v-model="sortBy"
+                @change="handleSortChange"
+                class="form-select flex-1 sm:flex-none sm:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
+              >
+                <option value="-sales_count">Most Popular</option>
+                <option value="-created_at">Newest First</option>
+                <option value="created_at">Oldest First</option>
+                <option value="base_price">Price: Low to High</option>
+                <option value="-base_price">Price: High to Low</option>
+                <option value="name">Name (A-Z)</option>
+                <option value="-name">Name (Z-A)</option>
+              </select>
+            </div>
           </div>
 
           <!-- Products Grid Component -->

@@ -35,41 +35,99 @@ class StripeService:
             return None
 
     @staticmethod
-    def create_checkout_session(user, order, success_url: str, cancel_url: str) -> Optional[Dict]:
+    def create_checkout_session(user, order, success_url: str, cancel_url: str, coupon_code: Optional[str] = None) -> Optional[Dict]:
         """create Stripe Checkout session"""
         try:
-            
+
             if not user.stripe_customer_id:
                 customer_id = StripeService.create_customer(user)
                 if customer_id:
                     user.stripe_customer_id = customer_id
                     user.save()
+
             line_items = []
-            for item in order.products:
+            # Use order.items.all() to access OrderItem instances
+            for item in order.items.all():
+                # Get product name (from variant or product)
+                product_name = item.product_name
+                if item.variant_name:
+                    product_name = f"{item.product_name} - {item.variant_name}"
+
+                # Use total_price which includes all product-level discounts
+                # Divide by quantity to get the discounted unit price
+                discounted_unit_price = item.total_price / item.quantity
+                unit_amount = int(discounted_unit_price * 100)
+
                 line_items.append({
                     "price_data": {
                         "currency": "usd",
-                        "unit_amount": item.price,
+                        "unit_amount": unit_amount,
                         "product_data": {
-                            "name": item.name,
-                            "metadata": {"product_id": item.id},
+                            "name": product_name,
+                            "metadata": {
+                                "product_id": item.product.id,
+                                "variant_id": item.variant.id if item.variant else None,
+                            },
                         },
                     },
                     "quantity": item.quantity,
                 })
-    
-            session = stripe.checkout.Session.create(
-                customer= user.stripe_customer_id,
-                payment_method_types=['card'],
-                line_items=line_items,
-                mode='payment',
-                success_url=success_url,
-                cancel_url=cancel_url,
-                metadata={
+
+            # Add shipping cost as a line item
+            if order.shipping_cost > 0:
+                line_items.append({
+                    "price_data": {
+                        "currency": "usd",
+                        "unit_amount": int(order.shipping_cost * 100),
+                        "product_data": {
+                            "name": "Shipping Cost",
+                        },
+                    },
+                    "quantity": 1,
+                })
+
+            # Session metadata
+            session_params = {
+                "customer": user.stripe_customer_id,
+                "payment_method_types": ['card'],
+                "line_items": line_items,
+                "mode": 'payment',
+                "success_url": success_url,
+                "cancel_url": cancel_url,
+                "metadata": {
                     'order_id': order.id,
+                    'order_number': order.order_number,
                     'user_id': user.id,
                 }
-            )
+            }
+
+            # Apply coupon discount if provided
+            if coupon_code:
+                from .models import Coupon
+                try:
+                    coupon = Coupon.objects.get(code=coupon_code, is_active=True)
+                    if coupon.is_valid:
+                        # Calculate discount amount on order total (after product discounts)
+                        order_amount = order.subtotal - order.discount_amount
+                        discount = coupon.calculate_discount(order_amount)
+
+                        # Create a Stripe coupon for this order
+                        stripe_coupon = stripe.Coupon.create(
+                            amount_off=int(discount * 100),  # Convert to cents
+                            currency='usd',
+                            duration='once',
+                            name=f"Order {order.order_number} - {coupon_code}"
+                        )
+                        session_params['discounts'] = [{
+                            'coupon': stripe_coupon.id
+                        }]
+                        # Add coupon info to metadata for webhook processing
+                        session_params['metadata']['coupon_code'] = coupon_code
+                        session_params['metadata']['coupon_discount'] = str(discount)
+                except Coupon.DoesNotExist:
+                    pass
+
+            session = stripe.checkout.Session.create(**session_params)
 
             return {
                 'checkout_url': session.url,
@@ -77,8 +135,7 @@ class StripeService:
             }
 
         except stripe.error.StripeError as e:
-            logger.error(f"Error creating checkout session: {e}"),
-        
+            logger.error(f"Error creating checkout session: {e}")
             return None
 
     @staticmethod
@@ -124,24 +181,58 @@ class StripeService:
 
 
 class PaymentService:
-    """Основной сервис для работы с платежами"""
+    """Main service for payment processing"""
 
     @staticmethod
-    def process_successful_payment(payment: Payment) -> bool:
+    def process_successful_payment(payment: Payment, session_metadata: dict = None) -> bool:
         """Handle successful payment"""
         try:
             payment.mark_as_succeeded()
 
-            # Активируем подписку
-            if payment.subscription:
-                payment.subscription.activate()
-                
-                # Записываем в историю
-                SubscriptionHistory.objects.create(
-                    subscription=payment.subscription,
-                    action='activated',
-                    description='Subscription activated after successful payment',
-                    metadata={'payment_id': payment.id}
+            # Update order status
+            order = payment.order
+            if not order.is_paid:
+                from django.utils import timezone
+                order.is_paid = True
+                order.paid_at = timezone.now()
+                order.status = 'paid'
+
+                # Apply coupon to order if it was in the session metadata
+                if session_metadata and 'coupon_code' in session_metadata and 'coupon_discount' in session_metadata:
+                    from .models import Coupon, CouponUsage
+                    try:
+                        coupon = Coupon.objects.get(code=session_metadata['coupon_code'], is_active=True)
+                        if coupon.is_valid:
+                            order.coupon = coupon
+                            order.coupon_code = coupon.code
+                            order.coupon_discount = Decimal(session_metadata['coupon_discount'])
+
+                            # Recalculate total with coupon
+                            order_amount = order.subtotal - order.discount_amount
+                            order.total = order_amount + order.shipping_cost + order.tax_amount - order.coupon_discount
+
+                            # Increment coupon usage count
+                            coupon.used_count += 1
+                            coupon.save()
+
+                            # Create coupon usage record
+                            CouponUsage.objects.create(
+                                coupon=coupon,
+                                user=order.user,
+                                order=order,
+                                discount_amount=order.coupon_discount
+                            )
+                    except Coupon.DoesNotExist:
+                        logger.warning(f"Coupon {session_metadata.get('coupon_code')} not found during payment processing")
+
+                order.save()
+
+                # Add to order status history
+                OrderStatusHistory.objects.create(
+                    order=order,
+                    status='paid',
+                    notes='Payment completed successfully',
+                    changed_by=order.user
                 )
 
             logger.info(f"Payment {payment.id} processed successfully")
@@ -153,20 +244,22 @@ class PaymentService:
 
     @staticmethod
     def process_failed_payment(payment: Payment, reason: str = "") -> bool:
-        """Обрабатывает неудачный платеж"""
+        """Handle failed payment"""
         try:
             payment.mark_as_failed(reason)
 
-            # Отменяем подписку
-            if payment.subscription:
-                payment.subscription.cancel()
-                
-                # Записываем в историю
-                SubscriptionHistory.objects.create(
-                    subscription=payment.subscription,
-                    action='payment_failed',
-                    description=f'Payment failed: {reason}',
-                    metadata={'payment_id': payment.id}
+            # Update order status to reflect payment failure
+            order = payment.order
+            if order.status == 'pending':
+                order.status = 'cancelled'
+                order.save()
+
+                # Add to order status history
+                OrderStatusHistory.objects.create(
+                    order=order,
+                    status='cancelled',
+                    notes=f'Payment failed: {reason}',
+                    changed_by=order.user
                 )
 
             logger.info(f"Payment {payment.id} marked as failed")
@@ -228,24 +321,33 @@ class WebhookService:
         """Обрабатывает завершение checkout сессии"""
         try:
             session = event_data['data']['object']
-            metadata = session.get('metadata', {})
-            payment_id = metadata.get('payment_id')
+            session_id = session.get('id')
 
-            if not payment_id:
-                logger.warning("No payment_id in checkout session metadata")
+            if not session_id:
+                logger.warning("No session_id in checkout session")
                 return False
 
-            payment = Payment.objects.get(id=payment_id)
+            # Find payment by stripe_session_id
+            try:
+                payment = Payment.objects.get(stripe_session_id=session_id)
+            except Payment.DoesNotExist:
+                logger.error(f"Payment not found for session {session_id}")
+                return False
+
+            # Update payment with payment intent ID
             payment.stripe_payment_intent_id = session.get("payment_intent")
             payment.save()
-            if session.mode == 'payment' and session.payment_status == 'paid':
-                
-                return PaymentService.process_successful_payment(payment)
+
+            # Get session metadata (contains coupon info if applied)
+            session_metadata = session.get('metadata', {})
+
+            # Process payment based on status
+            if session.get('mode') == 'payment' and session.get('payment_status') == 'paid':
+                return PaymentService.process_successful_payment(payment, session_metadata)
             else:
-                return PaymentService.process_failed_payment(payment)
-        except Payment.DoesNotExist:
-            logger.error(f"Payment not found for checkout session")
-            return False
+                reason = f"Payment status: {session.get('payment_status')}"
+                return PaymentService.process_failed_payment(payment, reason)
+
         except Exception as e:
             logger.error(f"Error handling checkout completed: {e}")
             return False

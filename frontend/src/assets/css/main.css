@@ -435,6 +435,26 @@ body {
 .Vue-Toastification__toast {
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1rem !important; /* More compact padding */
+  min-height: auto !important;
+  font-size: 0.875rem !important; /* Smaller font */
+}
+
+.Vue-Toastification__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.Vue-Toastification__icon {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  margin-right: 0.75rem !important;
+}
+
+.Vue-Toastification__close-button {
+  width: 1rem !important;
+  height: 1rem !important;
+  padding: 0 !important;
 }
 
 .Vue-Toastification__toast--success {
@@ -461,6 +481,7 @@ body {
 .Vue-Toastification__container.top-right {
   top: 80px !important; /* Position below header (header is ~64px + spacing) */
   right: 1rem !important;
+  max-width: 350px !important; /* Limit maximum width */
 }
 
 @keyframes spin {

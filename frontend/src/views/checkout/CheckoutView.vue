@@ -18,9 +18,9 @@
     </div>
 
     <!-- Checkout Content -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div v-else class="grid grid-cols-1 gap-6" :class="currentStep < 3 ? 'lg:grid-cols-3' : ''">
       <!-- Main Checkout Form -->
-      <div class="lg:col-span-2 space-y-6">
+      <div class="space-y-6" :class="currentStep < 3 ? 'lg:col-span-2' : ''">
         <!-- Step Indicator -->
         <div class="card">
           <div class="card-body">
@@ -120,30 +120,38 @@
               <label
                 v-for="method in paymentMethods"
                 :key="method.value"
-                class="flex items-center p-4 border rounded cursor-pointer transition-all"
-                :class="
-                  checkoutStore.paymentMethod === method.value
+                class="flex items-center p-4 border rounded transition-all"
+                :class="[
+                  method.disabled
+                    ? 'opacity-50 cursor-not-allowed bg-gray-50'
+                    : 'cursor-pointer',
+                  checkoutStore.paymentMethod === method.value && !method.disabled
                     ? 'border-accent-500 bg-accent-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                "
+                    : 'border-gray-300',
+                  !method.disabled && checkoutStore.paymentMethod !== method.value
+                    ? 'hover:border-gray-400'
+                    : ''
+                ]"
               >
                 <input
                   type="radio"
                   :value="method.value"
                   v-model="selectedPaymentMethod"
-                  class="w-4 h-4 text-accent-600 border-gray-300 focus:ring-accent-500"
+                  :disabled="method.disabled"
+                  class="w-4 h-4 text-accent-600 border-gray-300 focus:ring-accent-500 disabled:cursor-not-allowed"
                 />
                 <div class="ml-3 flex-1">
-                  <p class="font-medium text-gray-900">{{ method.label }}</p>
-                  <p class="text-sm text-gray-600">{{ method.description }}</p>
+                  <p class="font-medium" :class="method.disabled ? 'text-gray-400' : 'text-gray-900'">
+                    {{ method.label }}
+                  </p>
+                  <p class="text-sm" :class="method.disabled ? 'text-gray-400' : 'text-gray-600'">
+                    {{ method.description }}
+                  </p>
                 </div>
-                <component :is="method.icon" class="w-6 h-6 text-gray-400" />
+                <component :is="method.icon" class="w-6 h-6" :class="method.disabled ? 'text-gray-300' : 'text-gray-400'" />
               </label>
             </div>
           </div>
-
-          <!-- Coupon Input -->
-          <CouponInput :order-amount="parseFloat(cartStore.subtotal)" />
 
           <!-- Customer Notes -->
           <div class="card mt-6">
@@ -175,8 +183,8 @@
           <OrderReview
             :cart="cartStore.cart"
             :shipping-address="checkoutStore.selectedAddress"
-            :coupon="checkoutStore.couponData"
-            :coupon-discount="checkoutStore.couponDiscount"
+            :coupon="appliedCoupon"
+            :coupon-discount="appliedCoupon?.discount_amount || 0"
             :is-processing="ordersStore.isCreatingOrder"
             @edit-address="currentStep = 1"
             @edit-coupon="currentStep = 2"
@@ -191,12 +199,15 @@
         </div>
       </div>
 
-      <!-- Order Summary Sidebar -->
-      <div>
+      <!-- Order Summary Sidebar (only show on steps 1 and 2, hide on review step 3) -->
+      <div v-if="currentStep < 3">
         <CartSummary
           :cart="cartStore.cart"
           :show-checkout-button="false"
-          :coupon-discount="checkoutStore.couponDiscount"
+          :allow-coupon="true"
+          :coupon="appliedCoupon"
+          @coupon-applied="handleCouponApplied"
+          @coupon-removed="handleCouponRemoved"
         />
       </div>
     </div>
@@ -209,6 +220,8 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useCheckoutStore } from '@/stores/checkout'
 import { useOrdersStore } from '@/stores/orders'
+import { paymentsAPI } from '@/services/api'
+import { useToast } from 'vue-toastification'
 import ShippingAddressSelector from '@/components/checkout/ShippingAddressSelector.vue'
 import CouponInput from '@/components/checkout/CouponInput.vue'
 import OrderReview from '@/components/checkout/OrderReview.vue'
@@ -219,6 +232,7 @@ import {
   BuildingLibraryIcon
 } from '@heroicons/vue/24/outline'
 
+const toast = useToast()
 const cartStore = useCartStore()
 const checkoutStore = useCheckoutStore()
 const ordersStore = useOrdersStore()
@@ -228,6 +242,7 @@ const currentStep = ref(1)
 const isLoading = ref(true)
 const selectedPaymentMethod = ref('stripe')
 const customerNotes = ref('')
+const appliedCoupon = ref(null)
 
 const steps = [
   { id: 1, label: 'Shipping' },
@@ -240,19 +255,22 @@ const paymentMethods = [
     value: 'stripe',
     label: 'Credit/Debit Card',
     description: 'Pay securely with Stripe',
-    icon: CreditCardIcon
+    icon: CreditCardIcon,
+    disabled: false
   },
   {
     value: 'paypal',
     label: 'PayPal',
-    description: 'Pay with your PayPal account',
-    icon: BuildingLibraryIcon
+    description: 'Coming soon',
+    icon: BuildingLibraryIcon,
+    disabled: true
   },
   {
     value: 'cash',
     label: 'Cash on Delivery',
-    description: 'Pay when you receive your order',
-    icon: BanknotesIcon
+    description: 'Coming soon',
+    icon: BanknotesIcon,
+    disabled: true
   }
 ]
 
@@ -294,6 +312,16 @@ const handleAddressDeleted = () => {
   // Address automatically removed by store
 }
 
+// Coupon handlers
+const handleCouponApplied = (coupon) => {
+  appliedCoupon.value = coupon
+  toast.success(`Coupon ${coupon.code} applied!`)
+}
+
+const handleCouponRemoved = () => {
+  appliedCoupon.value = null
+}
+
 const handlePlaceOrder = async () => {
   try {
     const orderData = {
@@ -303,23 +331,46 @@ const handlePlaceOrder = async () => {
     }
 
     // Add coupon if applied
-    if (checkoutStore.couponCode) {
-      orderData.coupon_code = checkoutStore.couponCode
+    if (appliedCoupon.value) {
+      orderData.coupon_code = appliedCoupon.value.code
     }
 
     const order = await ordersStore.createOrder(orderData)
 
-    // Clear cart immediately after successful order
-    await cartStore.fetchCart()
+    // If payment method is Stripe, create payment session and redirect to Stripe
+    if (checkoutStore.paymentMethod === 'stripe') {
+      try {
+        // Get frontend URL from window location
+        const frontendUrl = window.location.origin
 
-    // Clear checkout state
-    checkoutStore.reset()
+        const paymentData = {
+          frontend_url: frontendUrl
+        }
 
-    // Redirect to success page
-    router.push({
-      name: 'checkout-success',
-      query: { order_number: order.order_number }
-    })
+        // Add coupon if applied
+        if (appliedCoupon.value) {
+          paymentData.coupon_code = appliedCoupon.value.code
+        }
+
+        const paymentResponse = await paymentsAPI.create(order.order_number, paymentData)
+
+        // Redirect to Stripe checkout page
+        window.location.href = paymentResponse.data.checkout_url
+      } catch (error) {
+        console.error('Failed to create payment session:', error)
+        toast.error('Failed to initiate payment. Please try again.')
+      }
+    } else {
+      // For other payment methods (PayPal, Cash on Delivery)
+      // Clear cart and redirect to success page
+      await cartStore.fetchCart()
+      checkoutStore.reset()
+
+      router.push({
+        name: 'checkout-success',
+        query: { order_number: order.order_number }
+      })
+    }
   } catch (error) {
     console.error('Failed to create order:', error)
     // Error handling done in store with toast

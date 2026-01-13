@@ -24,6 +24,9 @@ urlpatterns = [
     path('payments/<str:order_number>/create/', views.PaymentCreateView.as_view(), name='payment-create'),
     path('payments/<int:pk>/', views.PaymentDetailView.as_view(), name='payment-detail'),
 
+    # Webhook URLs
+    path('webhooks/stripe/', views.stripe_webhook, name='stripe-webhook'),
+
     # Admin URLs
     path('admin/orders/<str:order_number>/status/', views.OrderUpdateStatusView.as_view(), name='order-update-status'),
 ]

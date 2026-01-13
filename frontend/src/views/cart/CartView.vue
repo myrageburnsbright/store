@@ -12,7 +12,7 @@
     <CartEmpty v-else-if="cartStore.isEmpty" />
 
     <!-- Cart with Items -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Cart Items -->
       <div class="lg:col-span-2 space-y-4">
         <CartItem
@@ -27,7 +27,7 @@
         <div class="mt-6 flex justify-between items-center">
           <router-link
             :to="{ name: 'products' }"
-            class="btn btn-primary btn-lg text-accent-600 hover:text-accent-700 font-medium"
+            class="btn btn-primary btn-sm text-accent-600 hover:text-accent-700 font-medium"
           >
             ← Continue Shopping
           </router-link>
@@ -43,7 +43,7 @@
 
       <!-- Cart Summary -->
       <div>
-        <CartSummary :cart="cartStore.cart" :show-checkout-button="true" />
+        <CartSummary :cart="cartStore.cart" :show-checkout-button="true" :allow-coupon="false" />
       </div>
     </div>
   </div>

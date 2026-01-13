@@ -116,6 +116,19 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Coupon information
+    coupon = models.ForeignKey(
+        'Coupon',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments',
+        help_text="Coupon applied to this order"
+    )
+    coupon_code = models.CharField(max_length=50, blank=True, help_text="Coupon code used (stored for reference)")
+    coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Discount amount from coupon")
+
+
     class Meta:
         db_table = 'orders'
         verbose_name = 'Order'
@@ -237,6 +250,20 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.payment_id} - {self.status}"
+
+    def mark_as_succeeded(self):
+        """Mark payment as completed/succeeded"""
+        self.status = 'completed'
+        self.save()
+        return True
+
+    def mark_as_failed(self, error_message=''):
+        """Mark payment as failed with optional error message"""
+        self.status = 'failed'
+        if error_message:
+            self.error_message = error_message
+        self.save()
+        return True
 
 
 class Coupon(models.Model):

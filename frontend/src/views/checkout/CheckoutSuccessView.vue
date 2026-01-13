@@ -9,9 +9,9 @@
     <!-- Success Content -->
     <div v-else-if="order" class="text-center">
       <!-- Success Icon -->
-      <div class="mb-6">
-        <div class="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircleIcon class="w-12 h-12 text-success-600" />
+      <div class="mb-8">
+        <div class="w-32 h-32 bg-success-50 rounded-full flex items-center justify-center mx-auto">
+          <CheckCircleIcon class="w-24 h-24 text-success-500" />
         </div>
       </div>
 
@@ -49,6 +49,34 @@
           <div class="flex justify-between items-center pb-4 border-b border-gray-200">
             <span class="text-gray-600">Payment Method:</span>
             <span class="font-medium text-gray-900 capitalize">{{ order.payment_method }}</span>
+          </div>
+
+          <!-- Pricing Breakdown -->
+          <div class="space-y-2 pb-4 border-b border-gray-200">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Subtotal:</span>
+              <span class="text-gray-900">${{ parseFloat(order.subtotal).toFixed(2) }}</span>
+            </div>
+
+            <div v-if="order.discount_amount > 0" class="flex justify-between text-sm">
+              <span class="text-gray-600">Product Discounts:</span>
+              <span class="text-success-600">-${{ parseFloat(order.discount_amount).toFixed(2) }}</span>
+            </div>
+
+            <div v-if="order.coupon_code && order.coupon_discount > 0" class="flex justify-between text-sm">
+              <span class="text-gray-600">Coupon ({{ order.coupon_code }}):</span>
+              <span class="text-success-600 font-medium">-${{ parseFloat(order.coupon_discount).toFixed(2) }}</span>
+            </div>
+
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Shipping:</span>
+              <span class="text-gray-900">${{ parseFloat(order.shipping_cost || 0).toFixed(2) }}</span>
+            </div>
+
+            <div v-if="order.tax_amount > 0" class="flex justify-between text-sm">
+              <span class="text-gray-600">Tax:</span>
+              <span class="text-gray-900">${{ parseFloat(order.tax_amount).toFixed(2) }}</span>
+            </div>
           </div>
 
           <!-- Total Amount -->

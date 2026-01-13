@@ -74,13 +74,25 @@
 
       <!-- Actions -->
       <div class="flex gap-3">
+        <!-- For pending orders: Proceed to Payment -->
         <router-link
+          v-if="isPending"
+          :to="{ name: 'order-detail', params: { orderNumber: order.order_number } }"
+          class="btn btn-primary flex-1"
+        >
+          Proceed to Payment
+        </router-link>
+
+        <!-- For other orders: View Details -->
+        <router-link
+          v-else
           :to="{ name: 'order-detail', params: { orderNumber: order.order_number } }"
           class="btn btn-primary flex-1"
         >
           View Details
         </router-link>
 
+        <!-- Cancel Order Button -->
         <button
           v-if="canCancel"
           @click="$emit('cancel')"
@@ -116,6 +128,10 @@ const maxDisplayItems = 3
 
 const displayItems = computed(() => {
   return props.order.items.slice(0, maxDisplayItems)
+})
+
+const isPending = computed(() => {
+  return props.order.status === 'pending'
 })
 
 const canCancel = computed(() => {

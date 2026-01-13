@@ -193,3 +193,9 @@ class CartItemDetailView(generics.RetrieveAPIView):
         return CartItem.objects.filter(
             cart__user=self.request.user
         ).select_related('product', 'variant', 'cart')
+    
+class SummaryCartView(generics.RetrieveAPIView):
+    """
+    Get details for CartOrder Summary.
+    """
+    

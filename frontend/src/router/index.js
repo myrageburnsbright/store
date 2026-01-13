@@ -125,6 +125,12 @@ const routes = [
     component: CheckoutSuccessView,
     meta: { title: 'Order Success', requiresAuth: true }
   },
+  {
+    path: '/checkout/cancel',
+    name: 'checkout-cancel',
+    component: () => import('../views/checkout/CheckoutCancelView.vue'),
+    meta: { title: 'Payment Cancelled', requiresAuth: true }
+  },
 
   // Orders
   {
