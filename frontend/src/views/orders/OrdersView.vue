@@ -69,7 +69,7 @@
       />
 
       <!-- Pagination -->
-      <div v-if="ordersStore.pagination.count > ordersStore.pagination.pageSize" class="mt-8">
+      <div class="mt-8">
         <PaginationComponent
           :current-page="ordersStore.pagination.page"
           :total-pages="totalPages"
@@ -100,57 +100,43 @@ const tabs = computed(() => [
   {
     value: 'all',
     label: 'All Orders',
-    count: ordersStore.orders.length
+    count: ordersStore.statusCounts.all
   },
   {
     value: 'pending',
     label: 'Pending',
-    count: ordersStore.pendingOrders.length
+    count: ordersStore.statusCounts.pending
   },
   {
     value: 'paid',
     label: 'Paid',
-    count: ordersStore.paidOrders.length
+    count: ordersStore.statusCounts.paid
   },
   {
     value: 'processing',
     label: 'Processing',
-    count: ordersStore.processingOrders.length
+    count: ordersStore.statusCounts.processing
   },
   {
     value: 'shipped',
     label: 'Shipped',
-    count: ordersStore.shippedOrders.length
+    count: ordersStore.statusCounts.shipped
   },
   {
     value: 'delivered',
     label: 'Delivered',
-    count: ordersStore.deliveredOrders.length
+    count: ordersStore.statusCounts.delivered
   },
   {
     value: 'cancelled',
     label: 'Cancelled',
-    count: ordersStore.cancelledOrders.length
+    count: ordersStore.statusCounts.cancelled
   }
 ])
 
+// Now uses server-side filtered data
 const filteredOrders = computed(() => {
-  switch (selectedTab.value) {
-    case 'pending':
-      return ordersStore.pendingOrders
-    case 'paid':
-      return ordersStore.paidOrders
-    case 'processing':
-      return ordersStore.processingOrders
-    case 'shipped':
-      return ordersStore.shippedOrders
-    case 'delivered':
-      return ordersStore.deliveredOrders
-    case 'cancelled':
-      return ordersStore.cancelledOrders
-    default:
-      return ordersStore.orders
-  }
+  return ordersStore.orders
 })
 
 const totalPages = computed(() => {
@@ -158,7 +144,11 @@ const totalPages = computed(() => {
 })
 
 const handlePageChange = async (page) => {
-  await ordersStore.goToPage(page)
+  const params = { page }
+  if (selectedTab.value !== 'all') {
+    params.status = selectedTab.value
+  }
+  await ordersStore.fetchOrders(params)
 }
 
 const handleCancelOrder = async (order) => {
@@ -169,6 +159,8 @@ const handleCancelOrder = async (order) => {
   cancellingOrderId.value = order.id
   try {
     await ordersStore.cancelOrder(order.order_number)
+    // Refetch current page after cancellation
+    await fetchOrders()
   } catch (error) {
     console.error("[OrdersView] Error canceling order:", error)
   } finally {
@@ -176,15 +168,37 @@ const handleCancelOrder = async (order) => {
   }
 }
 
+// Fetch orders with current status filter
+const fetchOrders = async () => {
+  const params = {}
+  if (selectedTab.value !== 'all') {
+    params.status = selectedTab.value
+  }
+  await ordersStore.fetchOrders(params)
+}
+
+// Fetch all status counts on initial load
+const fetchAllStatusCounts = async () => {
+  const statuses = ['all', 'pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled']
+
+  // Fetch counts for all statuses in parallel
+  await Promise.all(
+    statuses.map(async (status) => {
+      const params = status === 'all' ? {} : { status, page: 1 }
+      await ordersStore.fetchOrders(params)
+    })
+  )
+
+  // After fetching all counts, load the current tab's full data
+  await fetchOrders()
+}
+
 // Fetch orders when tab changes
 watch(selectedTab, async () => {
-  // If filtering by status, we can filter client-side from existing data
-  // No need to refetch unless implementing server-side filtering
+  await fetchOrders()
 })
 
 onMounted(async () => {
-  if (ordersStore.orders.length === 0) {
-    await ordersStore.fetchOrders()
-  }
+  await fetchAllStatusCounts()
 })
 </script>

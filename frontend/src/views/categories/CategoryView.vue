@@ -117,7 +117,7 @@
           />
 
           <!-- Pagination -->
-          <div v-if="productsStore.pagination.count > productsStore.pagination.pageSize" class="mt-8">
+          <div class="mt-8">
             <PaginationComponent
               :current-page="productsStore.pagination.page"
               :total-pages="totalPages"

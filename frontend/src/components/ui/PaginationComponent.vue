@@ -20,17 +20,18 @@
       </button>
 
       <!-- Page Numbers -->
-      <div class="hidden sm:flex items-center space-x-1">
+      <div class="hidden sm:flex items-center space-x-2">
         <button
           v-for="page in visiblePages"
           :key="page"
           @click="$emit('page-change', page)"
           :class="[
-            'px-3 py-1 text-sm font-medium rounded-lg transition-colors',
+            'px-4 py-2 text-sm font-bold rounded-lg transition-all min-w-[40px]',
             page === currentPage
-              ? 'bg-accent-600 text-white'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              ? 'bg-blue-600 text-white shadow-lg cursor-default'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-400'
           ]"
+          :disabled="page === currentPage"
         >
           {{ page }}
         </button>

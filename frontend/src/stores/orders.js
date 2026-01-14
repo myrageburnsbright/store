@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { ordersAPI } from '@/services/api'
 import { useToast } from 'vue-toastification'
+import { PAGINATION_CONFIG } from '@/config/pagination'
 
 const toast = useToast()
 
@@ -15,7 +16,18 @@ export const useOrdersStore = defineStore('orders', () => {
     next: null,
     previous: null,
     page: 1,
-    pageSize: 20
+    pageSize: PAGINATION_CONFIG.PAGE_SIZE
+  })
+
+  // Store counts for each status
+  const statusCounts = ref({
+    all: 0,
+    pending: 0,
+    paid: 0,
+    processing: 0,
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0
   })
 
   const isLoading = ref(false)
@@ -60,9 +72,13 @@ export const useOrdersStore = defineStore('orders', () => {
         count: response.data.count || 0,
         next: response.data.next,
         previous: response.data.previous,
-        page: params.page || 1,
-        pageSize: params.page_size || 20
+        page: parseInt(params.page) || 1,
+        pageSize: PAGINATION_CONFIG.PAGE_SIZE
       }
+
+      // Store count for current status filter
+      const status = params.status || 'all'
+      statusCounts.value[status] = response.data.count || 0
 
       return response.data
     } catch (error) {
@@ -187,6 +203,7 @@ export const useOrdersStore = defineStore('orders', () => {
     orders,
     currentOrder,
     pagination,
+    statusCounts,
     isLoading,
     isCreatingOrder,
 

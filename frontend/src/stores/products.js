@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { productsAPI, categoriesAPI, brandsAPI } from '@/services/api'
+import { PAGINATION_CONFIG } from '@/config/pagination'
 
 export const useProductsStore = defineStore('products', () => {
   // State
@@ -15,7 +16,7 @@ export const useProductsStore = defineStore('products', () => {
     next: null,
     previous: null,
     page: 1,
-    pageSize: 20
+    pageSize: PAGINATION_CONFIG.PAGE_SIZE
   })
 
   const filters = ref({
@@ -67,8 +68,8 @@ export const useProductsStore = defineStore('products', () => {
         count: response.data.count || 0,
         next: response.data.next,
         previous: response.data.previous,
-        page: params.page || 1,
-        pageSize: params.page_size || 20
+        page: parseInt(params.page) || 1,
+        pageSize: PAGINATION_CONFIG.PAGE_SIZE
       }
 
       return response.data

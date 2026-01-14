@@ -73,7 +73,7 @@
     />
 
     <!-- Pagination -->
-    <div v-if="productsStore.pagination.count > 0 && !productsStore.isLoading" class="mt-8">
+    <div v-if="!productsStore.isLoading" class="mt-8">
       <PaginationComponent
         :current-page="productsStore.pagination.page"
         :total-pages="productsStore.totalPages"
@@ -117,7 +117,7 @@ const fetchProducts = async () => {
   const params = {
     search: searchQuery.value || undefined,
     ordering: sortBy.value,
-    page: route.query.page || 1
+    page: parseInt(route.query.page) || 1
   }
 
   try {

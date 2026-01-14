@@ -103,12 +103,12 @@ class ShippingAddressSetDefaultView(APIView):
 # ==================== Order Views ====================
 
 class OrderListView(generics.ListAPIView):
-    """List user's orders"""
+    """List user's orders with optional status filtering"""
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(
+        queryset = Order.objects.filter(
             user=self.request.user
         ).prefetch_related(
             'items__product',
@@ -116,6 +116,13 @@ class OrderListView(generics.ListAPIView):
             'shipping_address',
             'status_history'
         ).order_by('-created_at')
+
+        # Filter by status if provided
+        status_filter = self.request.query_params.get('status', None)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        return queryset
 
 
 class OrderDetailView(generics.RetrieveAPIView):
