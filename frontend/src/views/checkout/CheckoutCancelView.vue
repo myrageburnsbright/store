@@ -71,7 +71,7 @@ const orderNumber = ref(route.query.order_number || '')
 onMounted(() => {
   // Check if order number exists
   if (!orderNumber.value) {
-    console.warn('No order number provided in URL')
+    console.warn("[CheckoutCancelView] No order number provided in query parameters")
   }
 })
 </script>

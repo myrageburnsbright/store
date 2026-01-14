@@ -189,7 +189,7 @@ const handleAddToCart = async () => {
     // Optionally remove from wishlist after adding to cart
     // await wishlistStore.removeFromWishlist(props.item.product.id)
   } catch (error) {
-    console.error('Failed to add to cart:', error)
+    console.error("[WishlistItem] Error adding to cart:", error)
   } finally {
     isAddingToCart.value = false
   }
@@ -200,7 +200,7 @@ const handleRemove = async () => {
   try {
     await wishlistStore.removeFromWishlist(props.item.product.id)
   } catch (error) {
-    console.error('Failed to remove from wishlist:', error)
+    console.error("[WishlistItem] Error removing from wishlist:", error)
   } finally {
     isRemoving.value = false
   }

@@ -111,7 +111,7 @@
               type="number"
               min="1"
               :max="product.stock_quantity"
-              class="quantity-input"
+              class="quantity-input no-arrows"
             />
             <button
               @click="incrementQuantity"
@@ -166,8 +166,20 @@
       </div>
     </div>
 
+    <!-- You May Also Like Section -->
+    <div v-if="product && relatedProducts.length > 0" class="mt-16">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <ProductCard
+          v-for="relatedProduct in relatedProducts"
+          :key="relatedProduct.id"
+          :product="relatedProduct"
+        />
+      </div>
+    </div>
+
     <!-- Product Not Found -->
-    <div v-else class="py-12 text-center">
+    <div v-else-if="!productsStore.isLoadingProduct" class="py-12 text-center">
       <h2 class="text-2xl font-bold text-gray-900 mb-2">Product not found</h2>
       <p class="text-gray-600 mb-4">The product you're looking for doesn't exist or has been removed.</p>
       <router-link :to="{ name: 'products' }" class="btn btn-primary">
@@ -187,6 +199,8 @@ import { useWishlistStore } from '@/stores/wishlist'
 import { useAuthStore } from '@/stores/auth'
 import { useProductBreadcrumbs } from '@/composables/useBreadcrumbs'
 import BreadcrumbsNav from '@/components/ui/BreadcrumbsNav.vue'
+import ProductCard from '@/components/products/ProductCard.vue'
+import { productsAPI } from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -199,6 +213,7 @@ const quantity = ref(1)
 const currentImageIndex = ref(0)
 const isAddingToCart = ref(false)
 const isTogglingWishlist = ref(false)
+const relatedProducts = ref([])
 
 const product = computed(() => productsStore.currentProduct)
 
@@ -224,11 +239,20 @@ onMounted(async () => {
   const slug = route.params.slug
   try {
     await productsStore.fetchProductBySlug(slug)
+
+    // Fetch related products from API
+    try {
+      const response = await productsAPI.getRelated(slug)
+      relatedProducts.value = response.data.results || []
+    } catch (error) {
+      relatedProducts.value = []
+    }
+
     if (authStore.isAuthenticated && wishlistStore.wishlistItems.length === 0) {
       await wishlistStore.fetchWishlist()
     }
   } catch (error) {
-    console.error('Failed to fetch product:', error)
+    console.error("[ProductDetailView] Error fetching wishlist:", error)
   }
 })
 
@@ -258,7 +282,7 @@ const handleAddToCart = async () => {
     })
     quantity.value = 1
   } catch (error) {
-    console.error('Failed to add to cart:', error)
+    console.error("[ProductDetailView] Error adding to cart:", error)
   } finally {
     isAddingToCart.value = false
   }
@@ -274,7 +298,7 @@ const toggleWishlist = async () => {
   try {
     await wishlistStore.toggleWishlist(product.value.id)
   } catch (error) {
-    console.error('Failed to toggle wishlist:', error)
+    console.error("[ProductDetailView] Error toggling wishlist:", error)
   } finally {
     isTogglingWishlist.value = false
   }

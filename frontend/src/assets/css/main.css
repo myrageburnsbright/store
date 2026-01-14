@@ -317,6 +317,18 @@ body {
   outline: none;
 }
 
+/* Remove arrows from number input */
+.quantity-input.no-arrows::-webkit-outer-spin-button,
+.quantity-input.no-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-input.no-arrows {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
   /* Загрузчик */
   .loading-spinner {
     display: inline-block;

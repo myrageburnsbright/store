@@ -75,7 +75,7 @@
               :value="item.quantity"
               @input="handleQuantityInput"
               :disabled="isUpdating"
-              class="quantity-input"
+              class="quantity-input no-arrows"
               min="1"
               :max="item.product.stock_quantity"
             />
@@ -170,7 +170,7 @@ const updateQuantity = async (newQuantity) => {
     await cartStore.updateQuantity(props.item.id, newQuantity)
     emit('update')
   } catch (error) {
-    console.error('Failed to update quantity:', error)
+    console.error("[CartItem] Error updating quantity:", error)
   } finally {
     isUpdating.value = false
   }
@@ -182,7 +182,7 @@ const handleRemove = async () => {
     await cartStore.removeItem(props.item.id)
     emit('remove')
   } catch (error) {
-    console.error('Failed to remove item:', error)
+    console.error("[CartItem] Error removing item:", error)
   } finally {
     isRemoving.value = false
   }

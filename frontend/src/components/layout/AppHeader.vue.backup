@@ -351,7 +351,6 @@ export default {
     
     const toggleUserMenu = () => {
       showUserMenu.value = !showUserMenu.value
-      console.log('User menu toggled:', showUserMenu.value) // Для отладки
     }
     
     const closeUserMenu = () => {
@@ -379,7 +378,6 @@ export default {
         toast.success('Вы успешно вышли из системы')
         router.push({ name: 'Home' })
       } catch (error) {
-        console.error('Ошибка при выходе:', error)
         toast.error('Произошла ошибка при выходе')
       }
     }
@@ -390,7 +388,7 @@ export default {
         try {
           await subscriptionStore.fetchSubscriptionStatus()
         } catch (error) {
-          console.error('Ошибка загрузки статуса подписки:', error)
+          // Error loading subscription status
         }
       }
     })

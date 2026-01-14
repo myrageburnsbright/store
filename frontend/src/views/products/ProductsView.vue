@@ -123,7 +123,7 @@ const fetchProducts = async () => {
   try {
     await productsStore.fetchProducts(params)
   } catch (error) {
-    console.error('Failed to fetch products:', error)
+    console.error("[ProductsView] Error fetching products:", error)
   }
 }
 

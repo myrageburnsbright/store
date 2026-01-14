@@ -190,7 +190,6 @@ const applyCoupon = async () => {
     toast.success(response.data.message || 'Coupon applied successfully!')
     couponCode.value = ''
   } catch (error) {
-    console.error('Coupon validation error:', error)
     if (error.response?.data?.error) {
       couponError.value = error.response.data.error
     } else {
@@ -231,7 +230,6 @@ const handleRetryPayment = async () => {
     // Redirect to Stripe checkout page
     window.location.href = paymentResponse.data.checkout_url
   } catch (error) {
-    console.error('Failed to create payment session:', error)
     toast.error('Failed to initiate payment. Please try again.')
     isProcessingPayment.value = false
   }

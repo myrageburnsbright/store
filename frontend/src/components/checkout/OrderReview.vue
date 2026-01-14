@@ -123,28 +123,20 @@
             <span>-${{ parseFloat(couponDiscount).toFixed(2) }}</span>
           </div>
 
-          <div v-if="couponDiscount > 0" class="border-t border-gray-200 pt-2 flex justify-between text-base text-gray-700">
-            <span>Cart Total</span>
-            <span>${{ totalAmount }}</span>
+          <div class="flex justify-between text-gray-600">
+            <span>Shipping</span>
+            <span>${{ shippingCost }}</span>
           </div>
 
-          <div v-if="couponDiscount > 0" class="flex justify-between text-lg font-bold text-accent-600">
-            <span>Estimated Final Total</span>
-            <span>${{ estimatedTotal }}</span>
+          <div class="flex justify-between text-gray-600">
+            <span>Tax</span>
+            <span>${{ taxAmount }}</span>
           </div>
 
-          <div v-if="!couponDiscount || couponDiscount <= 0" class="border-t border-gray-200 pt-2 flex justify-between text-lg font-bold text-gray-900">
+          <div class="border-t border-gray-200 pt-2 flex justify-between text-lg font-bold text-gray-900">
             <span>Total</span>
-            <span>${{ totalAmount }}</span>
+            <span>${{ finalTotal }}</span>
           </div>
-        </div>
-
-        <!-- Coupon Disclaimer -->
-        <div v-if="couponDiscount > 0" class="mt-3 p-3 bg-accent-50 border border-accent-200 rounded text-xs text-accent-800">
-          <p>
-            <strong>Note:</strong> The estimated final total includes your coupon discount.
-            The exact amount (including shipping and tax) will be calculated and confirmed when placing your order.
-          </p>
         </div>
       </div>
 
@@ -205,15 +197,24 @@ const totalAmount = computed(() => {
   return parseFloat(props.cart?.total || 0).toFixed(2)
 })
 
-// Calculate estimated total for preview when coupon is applied
-// This is ONLY for display purposes - server will calculate the actual total
-const estimatedTotal = computed(() => {
-  if (!props.couponDiscount || props.couponDiscount <= 0) {
-    return totalAmount.value
-  }
+// Mock shipping and tax (these are calculated on server)
+const shippingCost = computed(() => {
+  return '10.00' // TODO: Get from server
+})
+
+const taxAmount = computed(() => {
+  return '0.00' // TODO: Get from server
+})
+
+// Calculate final total including shipping and tax
+const finalTotal = computed(() => {
   const cartTotal = parseFloat(props.cart?.total || 0)
-  const estimated = cartTotal - parseFloat(props.couponDiscount)
-  return Math.max(0, estimated).toFixed(2)
+  const coupon = parseFloat(props.couponDiscount || 0)
+  const shipping = parseFloat(shippingCost.value)
+  const tax = parseFloat(taxAmount.value)
+
+  const total = cartTotal - coupon + shipping + tax
+  return Math.max(0, total).toFixed(2)
 })
 
 // Get product image - handle both list API (primary_image) and detail API (images array)

@@ -138,6 +138,7 @@ export const authAPI = {
 export const productsAPI = {
   getAll: (params) => api.get('/products/', { params }),
   getBySlug: (slug) => api.get(`/products/${slug}/`),
+  getRelated: (slug) => api.get(`/products/${slug}/related/`),
   create: (data) => api.post('/products/', apiUtils.createFormData(data)),
   update: (slug, data) => api.put(`/products/${slug}/`, apiUtils.createFormData(data)),
   delete: (slug) => api.delete(`/products/${slug}/`)

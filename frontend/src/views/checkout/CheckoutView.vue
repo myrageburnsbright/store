@@ -104,7 +104,7 @@
               :disabled="!checkoutStore.selectedAddressId"
               class="btn btn-primary btn-lg"
             >
-              Continue to Review
+              Continue Checkout
             </button>
           </div>
         </div>
@@ -173,7 +173,7 @@
               Back
             </button>
             <button @click="nextStep" class="btn btn-primary btn-lg">
-              Continue to Review
+              Continue Checkout
             </button>
           </div>
         </div>
@@ -206,6 +206,7 @@
           :show-checkout-button="false"
           :allow-coupon="true"
           :coupon="appliedCoupon"
+          :show-shipping-note="true"
           @coupon-applied="handleCouponApplied"
           @coupon-removed="handleCouponRemoved"
         />
@@ -357,7 +358,6 @@ const handlePlaceOrder = async () => {
         // Redirect to Stripe checkout page
         window.location.href = paymentResponse.data.checkout_url
       } catch (error) {
-        console.error('Failed to create payment session:', error)
         toast.error('Failed to initiate payment. Please try again.')
       }
     } else {
@@ -372,7 +372,6 @@ const handlePlaceOrder = async () => {
       })
     }
   } catch (error) {
-    console.error('Failed to create order:', error)
     // Error handling done in store with toast
   }
 }
@@ -390,7 +389,7 @@ onMounted(async () => {
     selectedPaymentMethod.value = checkoutStore.paymentMethod
     customerNotes.value = checkoutStore.customerNotes
   } catch (error) {
-    console.error('Failed to load checkout data:', error)
+    console.error("[CheckoutView] Error validating coupon:", error)
   } finally {
     isLoading.value = false
   }

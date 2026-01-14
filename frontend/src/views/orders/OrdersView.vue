@@ -170,7 +170,7 @@ const handleCancelOrder = async (order) => {
   try {
     await ordersStore.cancelOrder(order.order_number)
   } catch (error) {
-    console.error('Failed to cancel order:', error)
+    console.error("[OrdersView] Error canceling order:", error)
   } finally {
     cancellingOrderId.value = null
   }

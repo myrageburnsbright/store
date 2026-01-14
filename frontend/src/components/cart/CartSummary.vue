@@ -21,9 +21,6 @@
         <span>-${{ parseFloat(cart.total_discount).toFixed(2) }}</span>
       </div>
 
-      <!-- Divider -->
-      <div class="border-t border-gray-200"></div>
-
       <!-- Coupon Input -->
       <div v-if="allowCoupon" class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">
@@ -83,12 +80,9 @@
         <span>-${{ parseFloat(appliedCoupon.discount_amount).toFixed(2) }}</span>
       </div>
 
-      <!-- Divider -->
-      <div class="border-t border-gray-200"></div>
-
-      <!-- Shipping Note -->
-      <div class="text-xs text-gray-500">
-        Shipping and taxes calculated at checkout
+      <!-- Shipping Note (only for checkout) -->
+      <div v-if="showShippingNote" class="text-xs text-gray-500 text-center py-1">
+        Shipping and taxes will be calculated on review
       </div>
 
       <!-- Divider -->
@@ -170,6 +164,10 @@ const props = defineProps({
   coupon: {
     type: Object,
     default: null
+  },
+  showShippingNote: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -235,7 +233,6 @@ const applyCoupon = async () => {
     // Emit event to parent
     emit('coupon-applied', appliedCoupon.value)
   } catch (error) {
-    console.error('Coupon validation error:', error)
     if (error.response?.data?.error) {
       couponError.value = error.response.data.error
     } else {

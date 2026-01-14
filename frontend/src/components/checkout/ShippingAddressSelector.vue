@@ -159,7 +159,7 @@ const handleAddAddress = async (addressData) => {
     showAddForm.value = false
     emit('add')
   } catch (error) {
-    console.error('Failed to add address:', error)
+    console.error("[ShippingAddressSelector] Error adding address:", error)
   }
 }
 
@@ -174,7 +174,7 @@ const handleUpdateAddress = async (addressData) => {
     editingAddress.value = null
     emit('update')
   } catch (error) {
-    console.error('Failed to update address:', error)
+    console.error("[ShippingAddressSelector] Error updating address:", error)
   }
 }
 
@@ -184,7 +184,7 @@ const handleDelete = async (addressId) => {
       await checkoutStore.deleteShippingAddress(addressId)
       emit('delete')
     } catch (error) {
-      console.error('Failed to delete address:', error)
+      console.error("[ShippingAddressSelector] Error deleting address:", error)
     }
   }
 }

@@ -258,7 +258,7 @@ onMounted(async () => {
   try {
     order.value = await ordersStore.fetchOrderByNumber(orderNumber)
   } catch (error) {
-    console.error('Failed to load order:', error)
+    console.error("[CheckoutSuccessView] Error fetching order details:", error)
   } finally {
     isLoading.value = false
   }

@@ -230,7 +230,7 @@ onMounted(async () => {
     const response = await categoriesAPI.getAll()
     allCategories.value = response.data.results || response.data || []
   } catch (error) {
-    console.error('Failed to load categories:', error)
+    console.error("[CategoriesView] Error fetching categories:", error)
   } finally {
     isLoading.value = false
   }

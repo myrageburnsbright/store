@@ -43,7 +43,7 @@
       </nav>
 
       <!-- Two Column Layout for Pending Orders with Payment -->
-      <div v-if="order.status === 'pending'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div v-if="order.status === 'pending'" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <!-- Left: Order Details (2/3 width) -->
         <div class="lg:col-span-2">
           <OrderDetail
@@ -101,7 +101,7 @@ const handleCancelOrder = async () => {
     await ordersStore.cancelOrder(order.value.order_number)
     // Order is automatically updated in the store
   } catch (error) {
-    console.error('Failed to cancel order:', error)
+    console.error("[OrderDetailView] Error canceling order:", error)
   } finally {
     isCancelling.value = false
   }
@@ -118,7 +118,7 @@ onMounted(async () => {
   try {
     await ordersStore.fetchOrderByNumber(orderNumber)
   } catch (error) {
-    console.error('Failed to load order:', error)
+    console.error("[OrderDetailView] Error fetching order details:", error)
   }
 })
 </script>

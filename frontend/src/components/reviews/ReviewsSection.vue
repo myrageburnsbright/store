@@ -211,7 +211,7 @@ const handleDeleteReview = async (reviewId) => {
   try {
     await reviewsStore.deleteReview(reviewId, props.productSlug)
   } catch (error) {
-    console.error('Failed to delete review:', error)
+    console.error("[ReviewsSection] Error deleting review:", error)
   }
 }
 

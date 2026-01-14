@@ -117,7 +117,6 @@ const handleAddAllToCart = async () => {
           })
           successCount++
         } catch (error) {
-          console.error(`Failed to add ${item.product.name} to cart:`, error)
           failCount++
         }
       }

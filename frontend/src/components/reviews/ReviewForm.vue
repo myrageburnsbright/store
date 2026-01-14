@@ -162,8 +162,6 @@ const handleSubmit = async () => {
 
     emit('success')
   } catch (error) {
-    console.error('Failed to submit review:', error)
-
     // Handle specific field errors from backend
     if (error.response?.data) {
       errors.value = error.response.data

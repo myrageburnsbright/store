@@ -236,6 +236,30 @@ class ProductDetailView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+class ProductRelatedView(generics.ListAPIView):
+    """Get related products from the same category"""
+    serializer_class = ProductListSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        slug = self.kwargs.get('slug')
+        try:
+            product = Product.objects.get(slug=slug, is_active=True)
+            # Get products from same category, excluding current product
+            return Product.objects.filter(
+                is_active=True,
+                category=product.category
+            ).exclude(
+                id=product.id
+            ).select_related(
+                'category', 'brand'
+            ).prefetch_related(
+                'images'
+            )[:4]  # Limit to 4 related products
+        except Product.DoesNotExist:
+            return Product.objects.none()
+
+
 class ProductCreateView(generics.CreateAPIView):
     """Create new product (admin only)"""
     serializer_class = ProductCreateUpdateSerializer

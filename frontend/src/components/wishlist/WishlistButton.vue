@@ -87,7 +87,7 @@ const handleToggle = async () => {
   try {
     await wishlistStore.toggleWishlist(props.productId)
   } catch (error) {
-    console.error('Failed to toggle wishlist:', error)
+    console.error("[WishlistButton] Error toggling wishlist:", error)
   } finally {
     isLoading.value = false
   }

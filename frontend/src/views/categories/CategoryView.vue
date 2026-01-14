@@ -213,7 +213,6 @@ const loadCategoryAndProducts = async () => {
       page: route.query.page || 1
     })
   } catch (error) {
-    console.error('Failed to load category:', error)
     category.value = null
   } finally {
     isLoading.value = false
