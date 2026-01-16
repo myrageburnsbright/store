@@ -131,7 +131,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useProductImage } from '@/composables/useProductImage'
 import { StarIcon } from '@heroicons/vue/24/solid'
 import { ShoppingBagIcon, ShoppingCartIcon, TrashIcon } from '@heroicons/vue/24/outline'
-import api from '@/services/api'
 
 const props = defineProps({
   item: {
@@ -150,18 +149,13 @@ const isRemoving = ref(false)
 
 // Get product image - handle both list API (primary_image) and detail API (images array)
 const productImage = computed(() => {
-  const base = api.defaults.baseURL.replace(/\/$/, '')
   // From list API: primary_image is an object with {image: 'url'}
   if (props.item.product.primary_image && props.item.product.primary_image.image) {
-    const imgPath = props.item.product.primary_image.image
-    if (imgPath.startsWith('http')) return imgPath
-    return `${base}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+    return props.item.product.primary_image.image
   }
   // From detail API: images is an array
   if (props.item.product.images && props.item.product.images.length > 0) {
-    const imgPath = props.item.product.images[0].image
-    if (imgPath.startsWith('http')) return imgPath
-    return `${base}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+    return props.item.product.images[0].image
   }
   return null
 })

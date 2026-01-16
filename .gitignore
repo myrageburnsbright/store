@@ -30,11 +30,14 @@ pip-delete-this-directory.txt
 .pytest_cache/
 htmlcov/
 .env
+.env.production
+deploy.sh
 .venv
 env/
 venv/
 ENV/
 db/
+ddoc/
 env.bak/
 venv.bak/
 .spyderproject
@@ -118,3 +121,20 @@ coverage
 
 # Vitest
 __screenshots__/
+
+# Docker
+*.env
+!.env.production.example
+docker-compose.override.yml
+
+# Database
+store_db/
+*.sql
+
+# SSL Certificates
+nginx/ssl/*.pem
+nginx/ssl/*.key
+
+# Backups
+backups/
+*.backup

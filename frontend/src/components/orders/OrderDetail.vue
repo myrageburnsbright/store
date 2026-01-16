@@ -246,7 +246,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import api from '@/services/api'
 import OrderStatusBadge from './OrderStatusBadge.vue'
 
 const props = defineProps({
@@ -291,18 +290,13 @@ const formatDate = (dateString) => {
 
 // Get product image - handle both list API (primary_image) and detail API (images array)
 const getProductImage = (product) => {
-  const base = api.defaults.baseURL.replace(/\/$/, '')
   // From list API: primary_image is an object with {image: 'url'}
   if (product.primary_image && product.primary_image.image) {
-    const imgPath = product.primary_image.image
-    if (imgPath.startsWith('http')) return imgPath
-    return `${base}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+    return product.primary_image.image
   }
   // From detail API: images is an array
   if (product.images && product.images.length > 0) {
-    const imgPath = product.images[0].image
-    if (imgPath.startsWith('http')) return imgPath
-    return `${base}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+    return product.images[0].image
   }
   return null
 }

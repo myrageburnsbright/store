@@ -36,7 +36,7 @@
         v-if="product.discount_percentage > 0"
         class="absolute top-2 left-2 z-10"
       >
-        <span class="inline-flex items-center px-2 py-1 text-xs font-bold text-white bg-error-600 rounded">
+        <span class="badge badge-xl text-base badge-error opacity-75 border border-red-150">
           -{{ product.discount_percentage }}%
         </span>
       </div>
@@ -109,7 +109,6 @@
 </template>
 
 <script setup>
-import api from '@/services/api'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { HeartIcon, ShoppingCartIcon, StarIcon } from '@heroicons/vue/24/outline'
@@ -134,14 +133,13 @@ const isTogglingWishlist = ref(false)
 
 // Get product image - handle both list API (primary_image) and detail API (images array)
 const productImage = computed(() => {
-  const base = api.defaults.baseURL.replace(/\/$/, '')
   // From list API: primary_image is an object with {image: 'url'}
   if (props.product.primary_image && props.product.primary_image.image) {
-    return `${base}/${props.product.primary_image.image}`
+    return props.product.primary_image.image
   }
   // From detail API: images is an array
   if (props.product.images && props.product.images.length > 0) {
-    return `${base}/${props.product.images[0].image}`
+    return props.product.images[0].image
   }
   return null
 })

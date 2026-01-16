@@ -104,7 +104,7 @@
               :disabled="!checkoutStore.selectedAddressId"
               class="btn btn-primary btn-lg"
             >
-              Continue Checkout
+              Continue to checkout
             </button>
           </div>
         </div>
@@ -116,11 +116,11 @@
             <div class="card-header">
               <h3 class="text-lg font-semibold text-gray-900">Payment Method</h3>
             </div>
-            <div class="card-body space-y-3">
+            <div class="card-body space-y-2">
               <label
                 v-for="method in paymentMethods"
                 :key="method.value"
-                class="flex items-center p-4 border rounded transition-all"
+                class="flex items-center p-4 border rounded transition-all h-14"
                 :class="[
                   method.disabled
                     ? 'opacity-50 cursor-not-allowed bg-gray-50'
@@ -173,7 +173,7 @@
               Back
             </button>
             <button @click="nextStep" class="btn btn-primary btn-lg">
-              Continue Checkout
+              Continue to review
             </button>
           </div>
         </div>

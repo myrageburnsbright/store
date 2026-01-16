@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count, Q, Avg
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from .models import (
     Category, Brand, Product, ProductImage, ProductVariant,
     Review, Wishlist, ProductTag
@@ -13,6 +15,14 @@ from .serializers import (
     ProductCreateUpdateSerializer, ProductImageSerializer, ProductVariantSerializer,
     ReviewSerializer, WishlistSerializer, ProductTagSerializer
 )
+
+
+# ==================== Health Check ====================
+
+@require_http_methods(["GET"])
+def health_check(request):
+    """Health check endpoint for Docker monitoring"""
+    return JsonResponse({"status": "healthy", "service": "backend"})
 
 
 # ==================== Category Views ====================

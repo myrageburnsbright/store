@@ -75,13 +75,13 @@
       </div>
 
       <!-- Coupon Discount (if applied) -->
-      <div v-if="appliedCoupon" class="flex justify-between text-sm font-medium text-success-600 bg-success-50 px-3 py-2 rounded">
+      <div v-if="appliedCoupon" class="flex justify-between text-sm font-medium text-success-600 bg-success-50 px-3 rounded">
         <span>Coupon Discount</span>
         <span>-${{ parseFloat(appliedCoupon.discount_amount).toFixed(2) }}</span>
       </div>
 
       <!-- Shipping Note (only for checkout) -->
-      <div v-if="showShippingNote" class="text-xs text-gray-500 text-center py-1">
+      <div v-if="showShippingNote" class="text-xs text-gray-500 text-center">
         Shipping and taxes will be calculated on review
       </div>
 

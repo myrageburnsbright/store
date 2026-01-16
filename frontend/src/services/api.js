@@ -6,7 +6,7 @@ import { useToast } from 'vue-toastification'
 const toast = useToast()
 
 // Base API configuration
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 // Create axios instance
 const api = axios.create({
@@ -122,14 +122,14 @@ api.interceptors.response.use(
 
 // API методы
 export const authAPI = {
-  register: (data) => api.post('/api/v1/auth/register/', data),
-  login: (data) => api.post('/api/v1/auth/login/', data),
-  logout: (data) => api.post('/api/v1/auth/logout/', data),
-  refreshToken: (data) => api.post('/api/v1/auth/token/refresh/', data),
-  getProfile: () => api.get('/api/v1/auth/profile/'),
-  updateProfile: (data) => api.put('/api/v1/auth/profile/', data),
-  updateProfilePartial: (data) => api.patch('/api/v1/auth/profile/', data),
-  changePassword: (data) => api.put('/api/v1/auth/change-password/', data)
+  register: (data) => api.post('/v1/auth/register/', data),
+  login: (data) => api.post('/v1/auth/login/', data),
+  logout: (data) => api.post('/v1/auth/logout/', data),
+  refreshToken: (data) => api.post('/v1/auth/token/refresh/', data),
+  getProfile: () => api.get('/v1/auth/profile/'),
+  updateProfile: (data) => api.put('/v1/auth/profile/', data),
+  updateProfilePartial: (data) => api.patch('/v1/auth/profile/', data),
+  changePassword: (data) => api.put('/v1/auth/change-password/', data)
 }
 
 // E-Commerce API Endpoints
@@ -215,8 +215,8 @@ export const uploadAPI = {
   uploadImage: (file, onProgress) => {
     const formData = new FormData()
     formData.append('image', file)
-    
-    return api.post('/api/v1/upload/image/', formData, {
+
+    return api.post('/v1/upload/image/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },

@@ -37,6 +37,7 @@
                 {{ item.variant.name }}
               </p>
               <p class="text-xs text-gray-600 mt-1">Qty: {{ item.quantity }}</p>
+              <p class="text-xs text-gray-600 mt-1">Per unit: <span class="text-red-700 line-through decoration-red-500">${{ item.original_price }}</span> <span>${{ item.unit_price }}</span></p>
             </div>
 
             <!-- Price -->
@@ -44,7 +45,7 @@
               <p class="text-sm font-semibold text-gray-900">
                 ${{ parseFloat(item.total_price).toFixed(2) }}
               </p>
-              <p v-if="item.discount_amount > 0" class="text-xs text-success-600">
+              <p v-if="item.discount_amount > 0" class="text-xs text-green-700 text-success-600">
                 Saved ${{ parseFloat(item.discount_amount).toFixed(2) }}
               </p>
             </div>
@@ -115,12 +116,12 @@
 
           <div v-if="cart?.total_discount > 0" class="flex justify-between text-success-600">
             <span>Product Discounts</span>
-            <span>-${{ parseFloat(cart.total_discount).toFixed(2) }}</span>
+            <span class="text-green-600 text-lg">-${{ parseFloat(cart.total_discount).toFixed(2) }}</span>
           </div>
 
           <div v-if="couponDiscount > 0" class="flex justify-between text-success-600">
             <span>Coupon Discount</span>
-            <span>-${{ parseFloat(couponDiscount).toFixed(2) }}</span>
+            <span class="text-green-800 text-lg">-${{ parseFloat(couponDiscount).toFixed(2) }}</span>
           </div>
 
           <div class="flex justify-between text-gray-600">
@@ -133,7 +134,7 @@
             <span>${{ taxAmount }}</span>
           </div>
 
-          <div class="border-t border-gray-200 pt-2 flex justify-between text-lg font-bold text-gray-900">
+          <div class="border-t border-gray-200 pt-2 flex justify-between text-xl font-bold text-gray-900">
             <span>Total</span>
             <span>${{ finalTotal }}</span>
           </div>
@@ -159,7 +160,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import api from '@/services/api'
 
 const props = defineProps({
   cart: {
@@ -219,18 +219,13 @@ const finalTotal = computed(() => {
 
 // Get product image - handle both list API (primary_image) and detail API (images array)
 const getProductImage = (product) => {
-  const base = api.defaults.baseURL.replace(/\/$/, '')
   // From list API: primary_image is an object with {image: 'url'}
   if (product.primary_image && product.primary_image.image) {
-    const imgPath = product.primary_image.image
-    if (imgPath.startsWith('http')) return imgPath
-    return `${base}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+    return product.primary_image.image
   }
   // From detail API: images is an array
   if (product.images && product.images.length > 0) {
-    const imgPath = product.images[0].image
-    if (imgPath.startsWith('http')) return imgPath
-    return `${base}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`
+    return product.images[0].image
   }
   return null
 }

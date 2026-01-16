@@ -2,16 +2,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.main.views import health_check
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/auth/', include('apps.accounts.urls')),
-    path('', include('apps.main.urls')),
-    path('cart/', include('apps.cart.urls')),
-    path('payment/', include('apps.payment.urls')),
-    # path('api/v1/posts/', include('apps.main.urls')),
-    # path('api/v1/comments/', include('apps.comments.urls')),
-    # path('api/v1/subscribe/', include('apps.subscribe.urls')),
+
+    # All API routes under /api/
+    path('api/', include([
+        path('health/', health_check, name='health-check'),
+        path('v1/auth/', include('apps.accounts.urls')),
+        path('', include('apps.main.urls')),
+        path('cart/', include('apps.cart.urls')),
+        path('payment/', include('apps.payment.urls')),
+    ])),
 ]
 
 if settings.DEBUG:

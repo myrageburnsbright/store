@@ -120,6 +120,8 @@
                   {{ item.product.name }}
                 </p>
                 <p class="text-xs text-gray-600 mt-1">Qty: {{ item.quantity }}</p>
+                <p class="text-xs text-gray-600 mt-1">Per unit:  <span>${{ item.unit_price }}</span></p>
+       
               </div>
 
               <!-- Price -->
