@@ -71,7 +71,7 @@
             <div class="flex justify-end space-x-3">
               <button
                 type="button"
-                @click="resetForm"
+                @click.prevent="resetForm"
                 class="py-2 px-4 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-700 text-sm font-medium transition-colors"
               >
                 Cancel

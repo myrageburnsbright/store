@@ -255,6 +255,11 @@
 
             <!-- Mobile User Links -->
             <div v-if="authStore.isAuthenticated" class="border-t border-gray-200 pt-2 mt-2">
+              <!-- User Info -->
+              <div class="px-3 py-2 mb-2">
+                <p class="text-sm font-medium text-gray-900">{{ authStore.userFullName }}</p>
+                <p class="text-xs text-gray-500">{{ authStore.user?.email }}</p>
+              </div>
               <router-link
                 :to="{ name: 'profile' }"
                 class="nav-link flex items-center"
@@ -279,6 +284,21 @@
                 <HeartIcon class="w-4 h-4 mr-2" />
                 Wishlist
               </router-link>
+              <router-link
+                :to="{ name: 'change-password' }"
+                class="nav-link flex items-center"
+                @click="showMobileMenu = false"
+              >
+                <KeyIcon class="w-4 h-4 mr-2" />
+                Change Password
+              </router-link>
+              <button
+                @click="handleMobileLogout"
+                class="nav-link flex items-center w-full text-left text-error-600 hover:text-error-700"
+              >
+                <ArrowRightOnRectangleIcon class="w-4 h-4 mr-2" />
+                Logout
+              </button>
             </div>
             <!-- Mobile Login/Register Links -->
             <div v-else class="border-t border-gray-200 pt-2 mt-2">
@@ -364,6 +384,11 @@ const handleLogout = async () => {
   } catch (error) {
     toast.error('Failed to logout')
   }
+}
+
+const handleMobileLogout = async () => {
+  showMobileMenu.value = false
+  await handleLogout()
 }
 
 const fetchWishlistIfNeeded = async () => {
