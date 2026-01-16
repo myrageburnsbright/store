@@ -93,8 +93,8 @@
           <!-- Cart Icon -->
           <CartIcon />
 
-          <!-- User Menu -->
-          <div v-if="authStore.isAuthenticated" class="relative">
+          <!-- User Menu (hidden on mobile, use burger menu instead) -->
+          <div v-if="authStore.isAuthenticated" class="relative hidden sm:block">
             <button
               @click.stop="toggleUserMenu"
               class="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg border-1 hover:border-accent-400 hover:bg-accent-50 transition-all focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 h-10"
@@ -178,8 +178,8 @@
             </transition>
           </div>
 
-          <!-- Login/Register Buttons -->
-          <div v-else class="flex items-center space-x-3">
+          <!-- Login/Register Buttons (hidden on mobile) -->
+          <div v-else class="hidden sm:flex items-center space-x-3">
             <router-link
               :to="{ name: 'login' }"
               class="btn btn-sm btn-outline"
@@ -216,7 +216,8 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search products..."
-              class="form-input pl-10"
+              class="form-input"
+              style="padding-left: 2.5rem;"
               @keyup.enter="handleSearch"
             />
           </div>
@@ -277,6 +278,23 @@
               >
                 <HeartIcon class="w-4 h-4 mr-2" />
                 Wishlist
+              </router-link>
+            </div>
+            <!-- Mobile Login/Register Links -->
+            <div v-else class="border-t border-gray-200 pt-2 mt-2">
+              <router-link
+                :to="{ name: 'login' }"
+                class="nav-link flex items-center"
+                @click="showMobileMenu = false"
+              >
+                Sign In
+              </router-link>
+              <router-link
+                :to="{ name: 'register' }"
+                class="nav-link flex items-center"
+                @click="showMobileMenu = false"
+              >
+                Sign Up
               </router-link>
             </div>
           </nav>

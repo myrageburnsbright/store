@@ -9,7 +9,7 @@
         <p class="text-xl mb-8 max-w-2xl mx-auto" style="opacity: 0.95;">
           Discover amazing products at great prices. Shop with confidence and enjoy fast shipping on all orders.
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <router-link :to="{ name: 'products' }" class="btn btn-lg bg-white hover:bg-gray-100" style="color: #2563eb;">
             Shop Now
           </router-link>

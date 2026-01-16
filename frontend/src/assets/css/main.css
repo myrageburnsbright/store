@@ -36,6 +36,7 @@
 
 html {
   font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 body {
@@ -43,6 +44,7 @@ body {
   color: var(--color-gray-900);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 * {
