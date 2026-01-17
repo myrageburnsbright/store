@@ -3,23 +3,23 @@
     <h1 class="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
 
     <!-- Filter Tabs -->
-    <div class="mb-6 border-b border-gray-200">
-      <nav class="flex space-x-8" aria-label="Tabs">
+    <div class="mb-6 border-b border-gray-100">
+      <nav class="flex-wrap space" aria-label="Tabs">
         <button
           v-for="tab in tabs"
           :key="tab.value"
           @click="selectedTab = tab.value"
-          class="whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors"
+          class="whitespace-nowrap pb-2 px-3 border-b-2 font-medium text-sm transition-colors"
           :class="
             selectedTab === tab.value
-              ? 'border-accent-500 text-accent-600'
+              ? 'border-black text-black'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
           "
         >
           {{ tab.label }}
           <span
             v-if="tab.count > 0"
-            class="ml-2 py-0.5 px-2 rounded-full text-xs"
+            class="mr-2 py-0.5 px-2 rounded-full text-xs"
             :class="
               selectedTab === tab.value
                 ? 'bg-accent-100 text-accent-600'
