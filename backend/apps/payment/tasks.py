@@ -1,15 +1,29 @@
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
-from .models import Payment, WebhookEvent
+from .models import Payment, WebhookEvent, Order
 
+@shared_task
+def cancel_old_pending_orders():
+    """Canceling old pending payments"""
+    cutoff_date = timezone.now() - timedelta(days=7)
+    
+    
+    old_orders = Order.objects.filter(
+        created_at__lt=cutoff_date,
+        status__in=['pending']
+    )
+    
+    for order in old_orders:
+        order.status = 'cancelled'
+    
+    return {'cancelled_orders': old_orders}
 
 @shared_task
 def cleanup_old_payments():
-    """Очистка старых платежных записей"""
+    """Deleting old payment records"""
     cutoff_date = timezone.now() - timedelta(days=90)
     
-    # Удаляем старые неудачные/отмененные платежи
     old_payments = Payment.objects.filter(
         created_at__lt=cutoff_date,
         status__in=['failed', 'cancelled']
@@ -21,10 +35,9 @@ def cleanup_old_payments():
 
 @shared_task
 def cleanup_old_webhook_events():
-    """Очистка старых webhook событий"""
+    """Deleting old webhook events"""
     cutoff_date = timezone.now() - timedelta(days=30)
     
-    # Удаляем старые обработанные события
     old_events = WebhookEvent.objects.filter(
         created_at__lt=cutoff_date,
         status__in=['processed', 'ignored']

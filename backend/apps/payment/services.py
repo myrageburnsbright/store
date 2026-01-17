@@ -271,20 +271,19 @@ class PaymentService:
 
 
 class WebhookService:
-    """Сервис для обработки webhook событий"""
+    """Service for webhook events"""
 
     @staticmethod
     def process_stripe_webhook(event_data: Dict) -> bool:
-        """Обрабатывает Stripe webhook"""
+        """Handle Stripe webhook"""
         try:
             event_id = event_data.get('id')
             event_type = event_data.get('type')
 
-            # Проверяем, не обрабатывали ли мы уже это событие
+            # If this event already handled
             if WebhookEvent.objects.filter(event_id=event_id).exists():
                 return True
 
-            # Создаем запись о событии
             webhook_event = WebhookEvent.objects.create(
                 provider='stripe',
                 event_id=event_id,
@@ -292,7 +291,6 @@ class WebhookService:
                 data=event_data
             )
 
-            # Обрабатываем различные типы событий
             success = False
             
             if event_type == 'checkout.session.completed':
@@ -300,7 +298,6 @@ class WebhookService:
             elif event_type == 'charge.dispute.created':
                 success = WebhookService._handle_dispute_created(event_data)
             else:
-                # Неизвестный тип события - помечаем как игнорируемый
                 webhook_event.status = 'ignored'
                 webhook_event.save()
                 return True
@@ -318,7 +315,7 @@ class WebhookService:
 
     @staticmethod
     def _handle_checkout_completed(event_data: Dict) -> bool:
-        """Обрабатывает завершение checkout сессии"""
+        """Handle completed checkout session event"""
         try:
             session = event_data['data']['object']
             session_id = session.get('id')
@@ -354,13 +351,12 @@ class WebhookService:
 
     @staticmethod
     def _handle_dispute_created(event_data: Dict) -> bool:
-        """Обрабатывает создание диспута"""
+        """Handle dipute creation event"""
         try:
             dispute = event_data['data']['object']
             charge_id = dispute.get('charge')
 
-            # Здесь можно добавить логику для обработки диспутов
-            # Например, отправка уведомлений администраторам
+            pass
             
             logger.info(f"Dispute created for charge {charge_id}")
             return True
